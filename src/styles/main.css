@@ -1,0 +1,123 @@
+:root {
+  color: #172f3a;
+  background: #f4ead5;
+  font-family:
+    Inter,
+    ui-rounded,
+    "SF Pro Rounded",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-width: 280px;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+button,
+canvas {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 2svh, 1.5rem);
+  padding: 1rem;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(255, 255, 255, 0.8),
+      transparent 30%
+    ),
+    linear-gradient(145deg, #f8f0df, #dbe9e0);
+}
+
+.intro {
+  text-align: center;
+}
+
+.intro h1,
+.intro p {
+  margin: 0;
+}
+
+.intro h1 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  letter-spacing: -0.05em;
+}
+
+.eyebrow {
+  color: #4b6c6a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.status {
+  color: #617574;
+  font-size: 0.9rem;
+}
+
+#game-canvas {
+  display: block;
+  width: min(100%, 25rem);
+  height: auto;
+  max-height: calc(100svh - 9.5rem);
+  aspect-ratio: 2 / 3;
+  border: 4px solid #172f3a;
+  border-radius: 1.25rem;
+  background: #d8f2ff;
+  box-shadow:
+    0 1.25rem 3rem rgba(29, 62, 61, 0.18),
+    0 0.25rem 0 rgba(23, 47, 58, 0.15);
+  touch-action: none;
+}
+
+#game-canvas:focus-visible {
+  outline: 4px solid #ff6b4a;
+  outline-offset: 4px;
+}
+
+noscript {
+  display: block;
+  padding: 1rem;
+  text-align: center;
+}
+
+@media (max-height: 560px) {
+  .app-shell {
+    flex-direction: row;
+  }
+
+  .intro {
+    max-width: 10rem;
+  }
+
+  #game-canvas {
+    max-width: calc((100svh - 2rem) * 0.6667);
+    max-height: calc(100svh - 2rem);
+  }
+}

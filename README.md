@@ -2,6 +2,40 @@
 
 A compact browser game inspired by Flappy Bird's one-button obstacle-dodging loop. It is intended to be built with TypeScript, Vite, and the HTML5 Canvas API.
 
+## Current status
+
+Milestone 0 is complete. The project currently renders a responsive static Canvas
+preview; interactive gameplay is planned for Milestone 1.
+
+## Getting started
+
+Use a current Node.js 22 release, then install the project and Playwright's
+Chromium runtime:
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+## Available commands
+
+```bash
+npm run dev          # Start the Vite development server
+npm run build        # Type-check and create the production build
+npm run test         # Run Vitest unit tests
+npm run test:watch   # Run Vitest in watch mode
+npm run test:e2e     # Run Playwright browser tests
+npm run lint         # Run ESLint
+npm run format       # Format the repository with Prettier
+npm run format:check # Verify formatting
+```
+
 ## Start a Codex session
 
 Open this directory as the project root, then give Codex a task such as:

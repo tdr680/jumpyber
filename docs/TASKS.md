@@ -4,14 +4,17 @@ Codex should work from top to bottom unless a task explicitly depends on later d
 
 ## Milestone 0 — Project foundation
 
-- [ ] Initialize a Vite TypeScript project in this directory without deleting documentation.
-- [ ] Enable strict TypeScript settings.
-- [ ] Add scripts for development, build, tests, linting, and end-to-end tests.
-- [ ] Configure Vitest.
-- [ ] Configure Playwright.
-- [ ] Add a minimal HTML shell and responsive page styles.
-- [ ] Create a canvas and render a static test scene.
-- [ ] Confirm `npm run build` succeeds.
+- [x] Initialize a Vite TypeScript project in this directory without deleting documentation.
+- [x] Enable strict TypeScript settings.
+- [x] Add scripts for development, build, tests, linting, and end-to-end tests.
+- [x] Configure Vitest.
+- [x] Configure Playwright.
+- [x] Add a minimal HTML shell and responsive page styles.
+- [x] Create a canvas and render a static test scene.
+- [x] Confirm `npm run build` succeeds.
+
+Milestone 0 verified on 2026-07-16 with lint, formatting, unit-test,
+production-build, and Chromium smoke-test checks.
 
 ## Milestone 1 — First playable vertical slice
 

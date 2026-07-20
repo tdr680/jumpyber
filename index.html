@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Jumpyber is a compact one-button browser game."
+    />
+    <title>Jumpyber</title>
+  </head>
+  <body>
+    <main id="app" class="app-shell">
+      <header class="intro">
+        <p class="eyebrow">One button. Mind the gap.</p>
+        <h1>Jumpyber</h1>
+        <p class="status">Foundation preview</p>
+      </header>
+
+      <canvas
+        id="game-canvas"
+        width="400"
+        height="600"
+        tabindex="0"
+        role="img"
+        aria-label="Jumpyber foundation preview with a character between obstacles"
+      >
+        Your browser does not support the HTML canvas element.
+      </canvas>
+    </main>
+
+    <noscript>Jumpyber requires JavaScript to run.</noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
