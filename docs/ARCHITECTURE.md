@@ -56,20 +56,20 @@ The input controller normalizes keyboard, pointer, and touch into semantic actio
 
 Audio is optional for the first visual milestone. The audio controller should tolerate browsers that require user interaction before playback.
 
-## Proposed modules
+## Current modules
 
 ```text
 src/main.ts
   Creates the app and starts it.
 
 src/app/GameApp.ts
-  Coordinates lifecycle, input, update, render, restart, and pause.
+  Coordinates lifecycle, input, update, render, and restart.
 
 src/app/GameLoop.ts
   requestAnimationFrame loop, delta clamping, fixed-step accumulator.
 
 src/app/GameState.ts
-  State enum and state-transition helpers.
+  Ready, Playing, and GameOver state constants and type.
 
 src/config/gameConfig.ts
   Typed gameplay and rendering constants.
@@ -90,7 +90,7 @@ src/game/Collision.ts
   Pure collision functions.
 
 src/game/Score.ts
-  Current score and local best-score persistence.
+  Pure one-point-per-obstacle scoring rules.
 
 src/input/InputController.ts
   Browser events normalized to game actions.
@@ -100,9 +100,6 @@ src/rendering/CanvasRenderer.ts
 
 src/rendering/Viewport.ts
   Logical-to-physical scaling and coordinate conversion.
-
-src/audio/AudioController.ts
-  Sound playback and mute state.
 
 src/core/random.ts
   Injectable random number generator.
@@ -118,19 +115,20 @@ For each simulation step:
 1. Consume pending semantic input.
 2. Apply state transitions.
 3. Update player velocity and position.
-4. Move and recycle obstacles.
-5. Evaluate scoring.
-6. Evaluate collisions and boundaries.
-7. Apply resulting state transition.
+4. Move obstacles.
+5. Evaluate collisions and boundaries.
+6. If the run is still alive, evaluate scoring.
+7. Recycle off-screen obstacles.
+8. Apply any resulting state transition.
 
 The renderer runs after zero or more simulation steps using the latest state.
 
 ## Fixed-step loop
 
-Recommended simulation step:
+The Milestone 1 simulation step is:
 
 ```text
-1 / 120 second or 1 / 60 second
+1 / 120 second
 ```
 
 Use `requestAnimationFrame` for presentation. Clamp incoming frame delta, for example to 100 ms, to avoid runaway updates after tab suspension.
@@ -142,7 +140,7 @@ accumulator += clampedDelta
 while accumulator >= step:
   update(step)
   accumulator -= step
-render(accumulator / step)
+render()
 ```
 
 Interpolation is optional for the MVP. Correctness matters more than architectural sophistication.
@@ -161,14 +159,17 @@ Interpolation is optional for the MVP. Correctness matters more than architectur
 
 Use a single authoritative `GameWorld` instance for each run or reset it completely. Avoid hidden mutable module globals.
 
-Recommended public snapshot fields:
+Current public snapshot fields:
 
 - state
 - player
 - obstacles
 - score
-- bestScore
 - worldTime
+- gameOverElapsed
+
+`bestScore` remains deferred until Milestone 2. The renderer receives the current
+fields as a read-only snapshot.
 
 ## Randomness
 

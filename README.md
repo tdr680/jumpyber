@@ -4,8 +4,9 @@ A compact browser game inspired by Flappy Bird's one-button obstacle-dodging loo
 
 ## Current status
 
-Milestone 0 is complete. The project currently renders a responsive static Canvas
-preview; interactive gameplay is planned for Milestone 1.
+Milestone 1 is complete. Jumpyber is a playable vertical slice with responsive
+Canvas rendering, one-button controls, obstacles, collision, scoring, game over,
+and immediate guarded restart.
 
 ## Getting started
 
@@ -22,6 +23,13 @@ Start the development server:
 ```bash
 npm run dev
 ```
+
+## Controls
+
+- Press Space, Arrow Up, or W to jump.
+- Click or tap the game canvas to jump.
+- The first action starts the run and jumps.
+- After game over, wait briefly and press, click, or tap to restart and jump.
 
 ## Available commands
 
@@ -51,7 +59,7 @@ After reviewing the plan:
 - `AGENTS.md` — operating instructions for coding agents
 - `docs/PRODUCT.md` — product intent and scope
 - `docs/GAMEPLAY.md` — mechanics and tuning model
-- `docs/ARCHITECTURE.md` — proposed technical structure
+- `docs/ARCHITECTURE.md` — current technical structure
 - `docs/ART.md` — visual and animation direction
 - `docs/TESTING.md` — quality strategy
 - `docs/TASKS.md` — ordered implementation backlog

@@ -50,6 +50,16 @@ Use this file for decisions that future contributors or agents should not repeat
 
 **Reasoning:** Frame-by-frame visual browser tests are fragile. Most game correctness can be verified faster and more reliably through pure logic tests.
 
+## ADR-007 — Fixed 120 Hz simulation step
+
+**Status:** Accepted
+
+**Decision:** Run gameplay at a fixed 120 Hz step, render with `requestAnimationFrame`, and clamp incoming frame deltas to 100 ms.
+
+**Reasoning:** A short fixed step keeps jump response and simple collision precise while making physics, scoring, and restart behavior deterministic in unit tests. Delta clamping prevents a suspended or delayed frame from advancing the simulation uncontrollably.
+
+**Consequences:** A normal 60 Hz presentation frame performs approximately two simulation updates. Rendering currently uses the latest state without interpolation.
+
 ## ADR template
 
 Copy this section for future decisions:

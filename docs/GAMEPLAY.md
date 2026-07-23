@@ -33,9 +33,9 @@ This is a tuning recommendation, not a hard architectural dependency. All gamepl
 ### Game over
 
 - Further scoring stops.
-- The character may briefly continue with death physics.
-- Current and best score are displayed.
-- Primary action restarts after a short input guard, preventing the death-causing tap from also restarting.
+- The Milestone 1 world freezes immediately on collision.
+- Current score is displayed; best score is deferred until Milestone 2.
+- Primary action restarts after a 250 ms input guard, resets all transient run state, and applies the first jump of the new run.
 
 ## Controls
 
@@ -110,10 +110,9 @@ The visible player body and collision shape should closely match. A slightly for
 
 ## Scoring
 
-- Add one point when the player crosses the trailing or center line of an unscored obstacle.
+- Add one point when the trailing edge of an unscored obstacle passes the player's horizontal center.
 - Mark that obstacle as scored immediately.
-- Store best score in `localStorage`.
-- Handle unavailable or malformed local storage safely.
+- Best-score storage and safe `localStorage` handling are scheduled for Milestone 2.
 
 ## Difficulty
 

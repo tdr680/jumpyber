@@ -1,18 +1,22 @@
-import { CanvasRenderer } from "./rendering/CanvasRenderer";
+import { GameApp } from "./app/GameApp";
+import { gameConfig } from "./config/gameConfig";
 import "./styles/main.css";
 
-function getCanvas(): HTMLCanvasElement {
-  const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
+function getElement<T extends Element>(selector: string): T {
+  const element = document.querySelector<T>(selector);
 
-  if (canvas === null) {
-    throw new Error("Jumpyber could not start: #game-canvas was not found.");
+  if (element === null) {
+    throw new Error(`Jumpyber could not start: ${selector} was not found.`);
   }
 
-  return canvas;
+  return element;
 }
 
-const canvas = getCanvas();
-const renderer = new CanvasRenderer(canvas);
+const app = new GameApp({
+  canvas: getElement<HTMLCanvasElement>("#game-canvas"),
+  statusElement: getElement<HTMLElement>("#game-status"),
+  config: gameConfig,
+});
 
-renderer.renderFoundationScene();
-canvas.dataset.scene = "foundation";
+app.start();
+window.addEventListener("pagehide", () => app.dispose(), { once: true });

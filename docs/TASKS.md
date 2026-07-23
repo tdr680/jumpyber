@@ -18,25 +18,28 @@ production-build, and Chromium smoke-test checks.
 
 ## Milestone 1 — First playable vertical slice
 
-- [ ] Implement typed game configuration.
-- [ ] Implement viewport scaling with a fixed logical resolution.
-- [ ] Implement the animation loop with delta clamping.
-- [ ] Implement Ready, Playing, and GameOver states.
-- [ ] Implement normalized keyboard, pointer, and touch input.
-- [ ] Implement player gravity, jump velocity, and fall-speed clamp.
-- [ ] Render the player using Canvas primitives.
-- [ ] Implement obstacle-pair data and horizontal motion.
-- [ ] Implement safe random gap placement.
-- [ ] Recycle or respawn off-screen obstacles.
-- [ ] Render obstacles aligned with their collision rectangles.
-- [ ] Implement circle-versus-rectangle collision.
-- [ ] Implement top and bottom boundary collision.
-- [ ] Implement one-point-per-obstacle scoring.
-- [ ] Render current score.
-- [ ] Implement game-over overlay.
-- [ ] Implement clean restart with a short input guard.
-- [ ] Add unit tests for physics, collision, obstacle bounds, scoring, and restart.
-- [ ] Add a Playwright smoke test for load and start input.
+- [x] Implement typed game configuration.
+- [x] Implement viewport scaling with a fixed logical resolution.
+- [x] Implement the animation loop with delta clamping.
+- [x] Implement Ready, Playing, and GameOver states.
+- [x] Implement normalized keyboard, pointer, and touch input.
+- [x] Implement player gravity, jump velocity, and fall-speed clamp.
+- [x] Render the player using Canvas primitives.
+- [x] Implement obstacle-pair data and horizontal motion.
+- [x] Implement safe random gap placement.
+- [x] Recycle or respawn off-screen obstacles.
+- [x] Render obstacles aligned with their collision rectangles.
+- [x] Implement circle-versus-rectangle collision.
+- [x] Implement top and bottom boundary collision.
+- [x] Implement one-point-per-obstacle scoring.
+- [x] Render current score.
+- [x] Implement game-over overlay.
+- [x] Implement clean restart with a short input guard.
+- [x] Add unit tests for physics, collision, obstacle bounds, scoring, and restart.
+- [x] Add a Playwright smoke test for load and start input.
+
+Milestone 1 verified on 2026-07-20 with 44 unit tests, four Chromium
+smoke tests, lint, formatting, production build, and manual browser checks.
 
 ## Milestone 2 — Feel and usability
 

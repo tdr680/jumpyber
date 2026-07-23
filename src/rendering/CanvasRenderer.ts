@@ -1,10 +1,17 @@
-const LOGICAL_WIDTH = 400;
-const LOGICAL_HEIGHT = 600;
+import type { GameConfig } from "../config/gameConfig";
+import type { GameSnapshot } from "../game/GameWorld";
+import { getObstacleRectangles, type ObstaclePair } from "../game/Obstacle";
+import type { PlayerState } from "../game/Player";
+import { Viewport } from "./Viewport";
 
 export class CanvasRenderer {
   private readonly context: CanvasRenderingContext2D;
+  private readonly viewport: Viewport;
 
-  public constructor(canvas: HTMLCanvasElement) {
+  public constructor(
+    canvas: HTMLCanvasElement,
+    private readonly config: GameConfig,
+  ) {
     const context = canvas.getContext("2d");
 
     if (context === null) {
@@ -12,44 +19,46 @@ export class CanvasRenderer {
     }
 
     this.context = context;
+    this.viewport = new Viewport(
+      canvas,
+      config.world,
+      config.viewport.maxDevicePixelRatio,
+    );
   }
 
-  public renderFoundationScene(): void {
+  public render(snapshot: GameSnapshot): void {
     const context = this.context;
-    const sky = context.createLinearGradient(0, 0, 0, LOGICAL_HEIGHT);
+    const { width, height } = this.config.world;
+    const { colors } = this.config;
+    this.viewport.prepare(context);
+    context.clearRect(0, 0, width, height);
+    const sky = context.createLinearGradient(0, 0, 0, height);
 
-    sky.addColorStop(0, "#d8f2ff");
-    sky.addColorStop(0.62, "#f7e9c6");
-    sky.addColorStop(1, "#f3c989");
+    sky.addColorStop(0, colors.skyTop);
+    sky.addColorStop(0.62, colors.skyMiddle);
+    sky.addColorStop(1, colors.skyBottom);
     context.fillStyle = sky;
-    context.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    context.fillRect(0, 0, width, height);
 
     this.drawCloud(76, 94, 0.9);
     this.drawCloud(315, 154, 0.65);
 
-    context.fillStyle = "#9dc8b4";
+    context.fillStyle = colors.distantGround;
     context.beginPath();
     context.moveTo(0, 430);
     context.quadraticCurveTo(90, 350, 180, 438);
     context.quadraticCurveTo(285, 330, 400, 422);
-    context.lineTo(400, 600);
-    context.lineTo(0, 600);
+    context.lineTo(width, height);
+    context.lineTo(0, height);
     context.closePath();
     context.fill();
 
-    this.drawObstacle(304, 0, 68, 196);
-    this.drawObstacle(304, 366, 68, 234);
-    this.drawPlayer(118, 286);
+    for (const obstacle of snapshot.obstacles) {
+      this.drawObstaclePair(obstacle);
+    }
+    this.drawPlayer(snapshot.player);
 
-    context.fillStyle = "rgba(20, 42, 54, 0.82)";
-    context.font = "700 38px system-ui, sans-serif";
-    context.textAlign = "center";
-    context.fillText("Jumpyber", LOGICAL_WIDTH / 2, 66);
-
-    context.font = "600 16px system-ui, sans-serif";
-    context.fillText("Foundation ready", LOGICAL_WIDTH / 2, 548);
-    context.font = "14px system-ui, sans-serif";
-    context.fillText("The first jump comes next.", LOGICAL_WIDTH / 2, 574);
+    this.drawInterface(snapshot);
   }
 
   private drawCloud(x: number, y: number, scale: number): void {
@@ -67,54 +76,127 @@ export class CanvasRenderer {
     context.restore();
   }
 
-  private drawObstacle(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  ): void {
-    const context = this.context;
-
-    context.fillStyle = "#315f5a";
-    context.fillRect(x, y, width, height);
-    context.fillStyle = "#4f8177";
-    context.fillRect(x + 8, y, 12, height);
-    context.fillStyle = "#234844";
-    context.fillRect(x - 6, y === 0 ? height - 18 : y, width + 12, 18);
+  private drawObstaclePair(obstacle: Readonly<ObstaclePair>): void {
+    const rectangles = getObstacleRectangles(
+      obstacle,
+      this.config.world.height,
+    );
+    this.drawObstacleRectangle(rectangles.top, "bottom");
+    this.drawObstacleRectangle(rectangles.bottom, "top");
   }
 
-  private drawPlayer(x: number, y: number): void {
+  private drawObstacleRectangle(
+    rectangle: Readonly<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }>,
+    gapEdge: "top" | "bottom",
+  ): void {
+    const context = this.context;
+    const edgeHeight = Math.min(18, rectangle.height);
+    const edgeY =
+      gapEdge === "top"
+        ? rectangle.y
+        : rectangle.y + rectangle.height - edgeHeight;
+
+    context.fillStyle = this.config.colors.obstacle;
+    context.fillRect(
+      rectangle.x,
+      rectangle.y,
+      rectangle.width,
+      rectangle.height,
+    );
+    context.fillStyle = this.config.colors.obstacleHighlight;
+    context.fillRect(
+      rectangle.x + 8,
+      rectangle.y,
+      Math.min(12, rectangle.width - 8),
+      rectangle.height,
+    );
+    context.fillStyle = this.config.colors.obstacleEdge;
+    context.fillRect(rectangle.x, edgeY, rectangle.width, edgeHeight);
+  }
+
+  private drawPlayer(player: Readonly<PlayerState>): void {
     const context = this.context;
 
     context.save();
-    context.translate(x, y);
-    context.rotate(-0.12);
+    context.translate(player.x, player.y);
+    context.rotate(-0.08);
 
-    context.strokeStyle = "#172f3a";
+    context.strokeStyle = this.config.colors.ink;
     context.lineCap = "round";
-    context.lineWidth = 7;
+    context.lineWidth = 4;
     context.beginPath();
-    context.moveTo(0, 15);
-    context.lineTo(0, 48);
-    context.moveTo(0, 28);
-    context.lineTo(-24, 10);
-    context.moveTo(0, 28);
-    context.lineTo(24, 6);
-    context.moveTo(0, 47);
-    context.lineTo(-18, 72);
-    context.moveTo(0, 47);
-    context.lineTo(22, 67);
+    context.moveTo(-7, 5);
+    context.lineTo(-20, -3);
+    context.moveTo(7, 5);
+    context.lineTo(20, -6);
+    context.moveTo(-5, 12);
+    context.lineTo(-12, 25);
+    context.moveTo(5, 12);
+    context.lineTo(13, 24);
     context.stroke();
 
-    context.fillStyle = "#ff6b4a";
+    context.fillStyle = this.config.colors.player;
     context.beginPath();
-    context.arc(0, 0, 18, 0, Math.PI * 2);
+    context.arc(0, 0, player.radius, 0, Math.PI * 2);
     context.fill();
 
-    context.fillStyle = "#172f3a";
+    context.fillStyle = this.config.colors.ink;
     context.beginPath();
     context.arc(6, -4, 2.8, 0, Math.PI * 2);
     context.fill();
     context.restore();
+  }
+
+  private drawInterface(snapshot: GameSnapshot): void {
+    const context = this.context;
+    const centerX = this.config.world.width / 2;
+    context.save();
+    context.textAlign = "center";
+
+    if (snapshot.state === "playing") {
+      context.fillStyle = this.config.colors.ink;
+      context.font = "800 44px system-ui, sans-serif";
+      context.fillText(String(snapshot.score), centerX, 68);
+      context.restore();
+      return;
+    }
+
+    if (snapshot.state === "ready") {
+      context.fillStyle = this.config.colors.ink;
+      context.font = "800 40px system-ui, sans-serif";
+      context.fillText("Jumpyber", centerX, 70);
+      this.drawPanel(52, 458, 296, 92);
+      context.fillStyle = "#ffffff";
+      context.font = "700 18px system-ui, sans-serif";
+      context.fillText("Press, click, or tap", centerX, 497);
+      context.font = "15px system-ui, sans-serif";
+      context.fillText("to jump", centerX, 526);
+      context.restore();
+      return;
+    }
+
+    this.drawPanel(48, 202, 304, 188);
+    context.fillStyle = "#ffffff";
+    context.font = "800 34px system-ui, sans-serif";
+    context.fillText("Game over", centerX, 250);
+    context.font = "700 22px system-ui, sans-serif";
+    context.fillText(`Score ${String(snapshot.score)}`, centerX, 296);
+    context.font = "16px system-ui, sans-serif";
+    context.fillText("Press, click, or tap", centerX, 342);
+    context.fillText("to restart", centerX, 368);
+    context.restore();
+  }
+
+  private drawPanel(x: number, y: number, width: number, height: number): void {
+    const context = this.context;
+    context.fillStyle = "rgba(23, 47, 58, 0.9)";
+    context.beginPath();
+    context.roundRect(x, y, width, height, 18);
+    context.fill();
   }
 }
