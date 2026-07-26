@@ -27,6 +27,25 @@ export interface GameConfig {
     readonly firstSpawnOffset: number;
     readonly poolSize: number;
   };
+  readonly terrain: {
+    readonly seed: number;
+    readonly initialHeight: number;
+    readonly noiseFrequency: number;
+    /** Vertical logical world units per horizontal logical world unit. */
+    readonly maximumSlope: number;
+    readonly slopeSmoothingDistance: number;
+    readonly integrationStep: number;
+    readonly minHeight: number;
+    readonly maxHeight: number;
+    readonly centerHeight: number;
+    readonly centerBiasStrength: number;
+    readonly boundaryBiasStrength: number;
+    readonly boundaryInfluenceDistance: number;
+    readonly openingFlatDistance: number;
+    readonly openingBlendDistance: number;
+    readonly passageHalfHeight: number;
+    readonly renderSampleSpacing: number;
+  };
   readonly restart: {
     readonly guardSeconds: number;
   };
@@ -73,6 +92,24 @@ export const gameConfig = {
     firstSpawnOffset: 100,
     poolSize: 3,
   },
+  terrain: {
+    seed: 680,
+    initialHeight: 300,
+    noiseFrequency: 1 / 800,
+    maximumSlope: 0.22,
+    slopeSmoothingDistance: 80,
+    integrationStep: 8,
+    minHeight: 210,
+    maxHeight: 390,
+    centerHeight: 300,
+    centerBiasStrength: 0.00045,
+    boundaryBiasStrength: 0.08,
+    boundaryInfluenceDistance: 60,
+    openingFlatDistance: 320,
+    openingBlendDistance: 480,
+    passageHalfHeight: 190,
+    renderSampleSpacing: 8,
+  },
   restart: {
     guardSeconds: 0.25,
   },
@@ -104,6 +141,15 @@ export function validateGameConfig(config: GameConfig): void {
     config.obstacles.scrollSpeed,
     config.obstacles.horizontalSpacing,
     config.obstacles.poolSize,
+    config.terrain.noiseFrequency,
+    config.terrain.maximumSlope,
+    config.terrain.slopeSmoothingDistance,
+    config.terrain.integrationStep,
+    config.terrain.boundaryBiasStrength,
+    config.terrain.boundaryInfluenceDistance,
+    config.terrain.openingBlendDistance,
+    config.terrain.passageHalfHeight,
+    config.terrain.renderSampleSpacing,
     config.restart.guardSeconds,
   ];
 
@@ -129,5 +175,56 @@ export function validateGameConfig(config: GameConfig): void {
     throw new Error(
       "The player start position must be inside the world boundaries.",
     );
+  }
+
+  const { terrain } = config;
+  const terrainValues = Object.values(terrain);
+
+  if (terrainValues.some((value) => !Number.isFinite(value))) {
+    throw new Error("Terrain configuration values must be finite.");
+  }
+
+  if (!Number.isInteger(terrain.seed)) {
+    throw new Error("The terrain seed must be an integer.");
+  }
+
+  if (terrain.openingFlatDistance < 0) {
+    throw new Error("The terrain opening distance cannot be negative.");
+  }
+
+  if (
+    terrain.minHeight >= terrain.centerHeight ||
+    terrain.centerHeight >= terrain.maxHeight ||
+    terrain.initialHeight < terrain.minHeight ||
+    terrain.initialHeight > terrain.maxHeight
+  ) {
+    throw new Error(
+      "Terrain heights must form a playable interval around the centre.",
+    );
+  }
+
+  if (
+    terrain.minHeight - terrain.passageHalfHeight <= 0 ||
+    terrain.maxHeight + terrain.passageHalfHeight >= config.world.height
+  ) {
+    throw new Error(
+      "Terrain passage boundaries must remain inside the logical world.",
+    );
+  }
+
+  const halfGapHeight = config.obstacles.gapHeight / 2;
+
+  if (
+    terrain.minHeight - halfGapHeight < config.obstacles.minimumTopClearance ||
+    terrain.maxHeight + halfGapHeight >
+      config.world.height - config.obstacles.minimumBottomClearance
+  ) {
+    throw new Error(
+      "Terrain-aligned obstacle gaps must preserve safe clearances.",
+    );
+  }
+
+  if (terrain.passageHalfHeight <= config.player.radius) {
+    throw new Error("The terrain passage must fit the player.");
   }
 }

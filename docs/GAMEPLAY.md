@@ -13,6 +13,32 @@ Height: 600 logical pixels
 
 This is a tuning recommendation, not a hard architectural dependency. All gameplay values should be defined in logical units.
 
+Horizontal travel uses world coordinates. The player remains at a stable
+logical screen `x`, while `worldDistance` advances by obstacle scroll speed
+multiplied by elapsed seconds. A visible screen coordinate maps to
+`worldX = worldDistance + screenX`.
+
+## Procedural terrain
+
+The playable passage follows a deterministic procedural centreline:
+
+- A run starts with a configured horizontal opening.
+- The opening blends gradually into procedural motion.
+- Seeded one-dimensional gradient noise controls target slope rather than
+  assigning independent random heights.
+- Integrating that low-frequency slope produces long ascending, descending,
+  and nearly horizontal sections with smooth reversals.
+- Slope is measured as vertical logical world units per horizontal logical
+  world unit. Negative slopes rise visually and positive slopes descend because
+  Canvas `y` increases downward.
+- Spatial smoothing and fixed-distance integration make the result independent
+  of display frame rate and render sampling density.
+- Centre and boundary bias weaken outward motion near the configured height
+  limits and turn the terrain inward without visible hard-clamp plateaus.
+
+The upper and lower world boundaries are parallel offsets from this centreline.
+The camera remains fixed in Milestone 1.5.
+
 ## Game states
 
 ### Ready
@@ -85,17 +111,22 @@ minimumTopClearance: 60 units
 minimumBottomClearance: 80 units
 ```
 
-Obstacle gaps should be randomly positioned inside safe vertical limits. Randomness should not create impossible layouts.
+Obstacle gaps are centred on the terrain sample at the obstacle's world-space
+centre. They do not receive independent vertical randomness. Terrain minimum
+and maximum heights preserve the configured top and bottom clearances even at
+the most extreme allowed profile height.
 
 Represent an obstacle pair as one gameplay object containing:
 
-- x position
-- gap center or top
+- world-space x position
+- sampled terrain height at the obstacle centre
 - gap size
 - width
 - scored flag
 
-Reuse obstacle objects or recycle them after they leave the screen.
+Screen x is derived by subtracting `worldDistance`. Reuse obstacle objects or
+recycle them forward after they leave the screen, resampling the same
+deterministic terrain profile at their new world position.
 
 ## Collision
 
@@ -104,9 +135,15 @@ For the first version:
 - Treat the player as a circle.
 - Treat obstacle sections as axis-aligned rectangles.
 - Test circle-versus-rectangle collision.
-- Treat the ceiling and floor as fatal boundaries unless later design changes say otherwise.
+- Treat contact with either terrain-following passage boundary as fatal.
 
 The visible player body and collision shape should closely match. A slightly forgiving hitbox is acceptable, but document it in configuration.
+
+Obstacle rendering and circle-versus-rectangle collision use one shared
+rectangle calculation based on the stored terrain-derived gap centre. Passage
+collision uses the terrain height and local slope at the player's world
+position, so sloped visible boundaries do not behave like invisible horizontal
+walls.
 
 ## Scoring
 
@@ -153,6 +190,15 @@ When the browser tab becomes hidden:
 - Pause the simulation.
 - Reset the frame-time accumulator on return.
 - Do not allow a huge delta to advance the world.
+
+## Seed and restart
+
+The terrain seed is explicit in typed configuration. The gradient-noise value
+and terrain sample at a given world position are functions of that seed and
+position, not `Math.random()` or elapsed frames. Restart resets world distance,
+the deterministic terrain cache, obstacles, score, player motion, and transient
+state while retaining the configured seed. The opening course therefore
+repeats exactly after restart.
 
 ## Tuning rule
 

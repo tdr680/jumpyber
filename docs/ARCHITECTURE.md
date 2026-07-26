@@ -84,13 +84,23 @@ src/game/Obstacle.ts
   Obstacle-pair data structure.
 
 src/game/ObstacleField.ts
-  Spawn, movement, recycling, and scoring candidates.
+  World-space spawn, terrain-aligned placement, recycling, and scoring candidates.
 
 src/game/Collision.ts
-  Pure collision functions.
+  Pure obstacle and terrain-passage collision functions.
 
 src/game/Score.ts
   Pure one-point-per-obstacle scoring rules.
+
+src/game/terrain/GradientNoise1D.ts
+  Stateless seeded one-dimensional gradient-noise sampling.
+
+src/game/terrain/TerrainProfile.ts
+  Fixed-distance slope integration, opening blend, drift control, and cached
+  arbitrary-position sampling.
+
+src/game/terrain/TerrainTypes.ts
+  Read-only terrain height/slope sampling contracts.
 
 src/input/InputController.ts
   Browser events normalized to game actions.
@@ -115,10 +125,10 @@ For each simulation step:
 1. Consume pending semantic input.
 2. Apply state transitions.
 3. Update player velocity and position.
-4. Move obstacles.
+4. Advance authoritative horizontal world distance.
 5. Evaluate collisions and boundaries.
 6. If the run is still alive, evaluate scoring.
-7. Recycle off-screen obstacles.
+7. Recycle off-screen world-space obstacles ahead of the player.
 8. Apply any resulting state transition.
 
 The renderer runs after zero or more simulation steps using the latest state.
@@ -166,10 +176,49 @@ Current public snapshot fields:
 - obstacles
 - score
 - worldTime
+- worldDistance
 - gameOverElapsed
+- terrainSeed
+- read-only terrain sampler
 
 `bestScore` remains deferred until Milestone 2. The renderer receives the current
 fields as a read-only snapshot.
+
+## Terrain and world-to-screen projection
+
+`GameWorld` owns one `TerrainProfile` and one monotonically increasing
+`worldDistance` for the active run. The player retains a stable screen x, so its
+terrain query position is `worldDistance + player.x`.
+
+Obstacles store authoritative `worldX`, width, gap size, score state, and the
+terrain height sampled at their centre when spawned or recycled. Their screen x
+is `obstacle.worldX - worldDistance`. One pure rectangle function performs this
+projection and derives both collision rectangles; simulation and
+`CanvasRenderer` call the same function.
+
+The renderer samples the shared terrain profile from `worldDistance` through
+the visible logical width. It draws parallel upper and lower passage boundaries
+from those samples. Terrain passage collision samples the same profile at the
+player's world position and accounts for the local slope. Rendering can extend
+the deterministic terrain cache, but cannot change any sample value.
+
+## Deterministic terrain sampling
+
+`GradientNoise1D` hashes the configured seed with integer lattice positions and
+uses smooth gradient interpolation. It is stateless and never calls
+`Math.random()`.
+
+`TerrainProfile` converts low-frequency noise into target slope and integrates
+it at fixed world-distance nodes. Missing nodes are generated in ascending index
+order and cached. Within a segment, slope is interpolated linearly and height
+is the analytical integral of that interpolation. Query order, frame delta,
+display refresh rate, and renderer sample spacing therefore cannot change a
+sample at a given `worldX`.
+
+The opening has exactly zero slope and eases into noise. A weak centre bias plus
+smooth attenuation and inward bias near vertical limits prevents unbounded
+drift. Restart clears generated nodes and recreates obstacles with the same
+configured seed.
 
 ## Randomness
 

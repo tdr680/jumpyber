@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   circleIntersectsRectangle,
+  circleTouchesTerrainPassage,
   circleTouchesWorldBoundary,
 } from "../game/Collision";
 
@@ -50,5 +51,34 @@ describe("circleTouchesWorldBoundary", () => {
     expect(circleTouchesWorldBoundary({ x: 10, y: 50, radius: 5 }, 100)).toBe(
       false,
     );
+  });
+});
+
+describe("circleTouchesTerrainPassage", () => {
+  const terrain = { height: 300, slope: 0.2 };
+
+  it("allows a circle safely inside a sloped passage", () => {
+    expect(
+      circleTouchesTerrainPassage({ x: 110, y: 300, radius: 16 }, terrain, 190),
+    ).toBe(false);
+  });
+
+  it("collides inclusively with upper and lower sloped boundaries", () => {
+    const normalRadius = 16 * Math.sqrt(1 + terrain.slope ** 2);
+
+    expect(
+      circleTouchesTerrainPassage(
+        { x: 110, y: 110 + normalRadius, radius: 16 },
+        terrain,
+        190,
+      ),
+    ).toBe(true);
+    expect(
+      circleTouchesTerrainPassage(
+        { x: 110, y: 490 - normalRadius, radius: 16 },
+        terrain,
+        190,
+      ),
+    ).toBe(true);
   });
 });

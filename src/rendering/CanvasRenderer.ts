@@ -43,18 +43,10 @@ export class CanvasRenderer {
     this.drawCloud(76, 94, 0.9);
     this.drawCloud(315, 154, 0.65);
 
-    context.fillStyle = colors.distantGround;
-    context.beginPath();
-    context.moveTo(0, 430);
-    context.quadraticCurveTo(90, 350, 180, 438);
-    context.quadraticCurveTo(285, 330, 400, 422);
-    context.lineTo(width, height);
-    context.lineTo(0, height);
-    context.closePath();
-    context.fill();
+    this.drawTerrain(snapshot);
 
     for (const obstacle of snapshot.obstacles) {
-      this.drawObstaclePair(obstacle);
+      this.drawObstaclePair(obstacle, snapshot.worldDistance);
     }
     this.drawPlayer(snapshot.player);
 
@@ -76,9 +68,80 @@ export class CanvasRenderer {
     context.restore();
   }
 
-  private drawObstaclePair(obstacle: Readonly<ObstaclePair>): void {
+  private drawTerrain(snapshot: GameSnapshot): void {
+    const context = this.context;
+    const { width, height } = this.config.world;
+    const { passageHalfHeight, renderSampleSpacing } = this.config.terrain;
+    const points: Array<{
+      readonly x: number;
+      readonly upperY: number;
+      readonly lowerY: number;
+    }> = [];
+
+    for (let x = 0; x <= width; x += renderSampleSpacing) {
+      const sample = snapshot.terrain.sampleAt(snapshot.worldDistance + x);
+      points.push({
+        x,
+        upperY: sample.height - passageHalfHeight,
+        lowerY: sample.height + passageHalfHeight,
+      });
+    }
+
+    if (points.at(-1)?.x !== width) {
+      const sample = snapshot.terrain.sampleAt(snapshot.worldDistance + width);
+      points.push({
+        x: width,
+        upperY: sample.height - passageHalfHeight,
+        lowerY: sample.height + passageHalfHeight,
+      });
+    }
+
+    context.save();
+    context.fillStyle = this.config.colors.distantGround;
+    context.globalAlpha = 0.58;
+
+    context.beginPath();
+    context.moveTo(0, 0);
+    for (const point of points) {
+      context.lineTo(point.x, point.upperY);
+    }
+    context.lineTo(width, 0);
+    context.closePath();
+    context.fill();
+
+    context.beginPath();
+    context.moveTo(0, height);
+    for (const point of points) {
+      context.lineTo(point.x, point.lowerY);
+    }
+    context.lineTo(width, height);
+    context.closePath();
+    context.fill();
+
+    context.globalAlpha = 0.9;
+    context.strokeStyle = this.config.colors.obstacleEdge;
+    context.lineWidth = 3;
+    for (const edge of ["upperY", "lowerY"] as const) {
+      context.beginPath();
+      points.forEach((point, index) => {
+        if (index === 0) {
+          context.moveTo(point.x, point[edge]);
+        } else {
+          context.lineTo(point.x, point[edge]);
+        }
+      });
+      context.stroke();
+    }
+    context.restore();
+  }
+
+  private drawObstaclePair(
+    obstacle: Readonly<ObstaclePair>,
+    worldDistance: number,
+  ): void {
     const rectangles = getObstacleRectangles(
       obstacle,
+      worldDistance,
       this.config.world.height,
     );
     this.drawObstacleRectangle(rectangles.top, "bottom");

@@ -24,10 +24,29 @@ Prioritize pure logic.
 
 ### Obstacles
 
-- Obstacles move left by speed multiplied by elapsed time.
+- Obstacle screen positions derive from world x minus elapsed-distance
+  scrolling.
 - Off-screen obstacles are recycled or removed.
-- Spawned gap positions remain inside safe bounds.
-- Scripted randomness produces predictable gap placement.
+- Spawned gap centres equal the shared terrain profile at the obstacle world
+  position.
+- Terrain-aligned gaps remain inside safe bounds on long ascending and
+  descending sections.
+
+### Procedural terrain
+
+- Gradient noise is deterministic for a fixed seed and differs across seeds.
+- Noise stays in its documented range and changes smoothly at lattice
+  boundaries.
+- The opening is exactly horizontal and blends continuously into procedural
+  slope.
+- Arbitrary, repeated, dense, sparse, and out-of-order world-position queries
+  return the same samples.
+- Long profiles stay within height and maximum-slope limits without abrupt
+  boundary corners.
+- A long fixed-seed profile contains ascending, descending, and nearly
+  horizontal sections.
+- Restart clears transient generation state while reproducing the same opening
+  profile and obstacle heights.
 
 ### Scoring
 
@@ -54,6 +73,9 @@ Required smoke tests:
 4. Primary input transitions the game into play.
 5. Restart is possible after forcing or waiting for game over.
 6. Resizing the viewport keeps the canvas visible.
+7. A controlled run advances beyond the flat opening and scores an obstacle.
+8. Terrain collision reaches GameOver and restart restores the deterministic
+   opening.
 
 Expose a minimal development-only test seam only when visual state cannot be reliably observed. Do not expose mutable production cheats globally without a build guard.
 

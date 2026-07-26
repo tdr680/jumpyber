@@ -72,8 +72,19 @@ export class GameApp {
   private syncBrowserState(): void {
     const { state } = this.world.snapshot;
     const { score } = this.world.snapshot;
+    const { worldDistance, terrain } = this.world.snapshot;
+    const playerTerrain = terrain.sampleAt(
+      worldDistance + this.options.config.player.x,
+    );
     this.options.canvas.dataset.gameState = state;
     this.options.canvas.dataset.score = String(score);
+    this.options.canvas.dataset.worldDistance = worldDistance.toFixed(3);
+    this.options.canvas.dataset.terrainHeight = playerTerrain.height.toFixed(3);
+    this.options.canvas.dataset.terrainSlope = playerTerrain.slope.toFixed(6);
+    this.options.canvas.dataset.playerY =
+      this.world.snapshot.player.y.toFixed(3);
+    this.options.canvas.dataset.playerVelocityY =
+      this.world.snapshot.player.velocityY.toFixed(3);
 
     if (state === "ready") {
       this.options.statusElement.textContent = "Ready — Space, click, or tap";

@@ -5,10 +5,10 @@ import { awardPassedObstacles } from "../game/Score";
 
 function obstacleAt(x: number): ObstaclePair {
   return {
-    x,
+    worldX: x,
     width: 64,
-    gapTop: 100,
     gapHeight: 155,
+    terrainHeight: 300,
     scored: false,
   };
 }

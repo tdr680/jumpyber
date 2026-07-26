@@ -1,74 +1,125 @@
 import { describe, expect, it } from "vitest";
 
 import { gameConfig } from "../config/gameConfig";
-import type { RandomSource } from "../core/random";
+import { getObstacleRectangles } from "../game/Obstacle";
 import { ObstacleField } from "../game/ObstacleField";
 import { awardPassedObstacles } from "../game/Score";
+import { TerrainProfile } from "../game/terrain/TerrainProfile";
 
-class ScriptedRandomSource implements RandomSource {
-  private index = 0;
-
-  public constructor(private readonly values: readonly number[]) {}
-
-  public next(): number {
-    const value = this.values[this.index % this.values.length];
-    this.index += 1;
-    return value ?? 0;
-  }
-}
-
-function createField(values: readonly number[]): ObstacleField {
-  return new ObstacleField(
-    gameConfig.world.height,
-    gameConfig.world.width,
-    gameConfig.obstacles,
-    new ScriptedRandomSource(values),
-  );
+function createField(): {
+  readonly field: ObstacleField;
+  readonly terrain: TerrainProfile;
+} {
+  const terrain = new TerrainProfile(gameConfig.terrain);
+  return {
+    field: new ObstacleField(
+      gameConfig.world.width,
+      gameConfig.obstacles,
+      terrain,
+    ),
+    terrain,
+  };
 }
 
 describe("ObstacleField", () => {
-  it("creates a fixed-size, evenly spaced obstacle pool", () => {
-    const field = createField([0.5]);
+  it("creates a fixed-size, evenly spaced world-space obstacle pool", () => {
+    const { field } = createField();
 
     expect(field.obstacles).toHaveLength(3);
-    expect(field.obstacles.map(({ x }) => x)).toEqual([500, 720, 940]);
-  });
-
-  it("maps scripted randomness into safe gap bounds", () => {
-    const field = createField([0, 1, 0.5]);
-
-    expect(field.obstacles.map(({ gapTop }) => gapTop)).toEqual([
-      60, 365, 212.5,
+    expect(field.obstacles.map(({ worldX }) => worldX)).toEqual([
+      500, 720, 940,
     ]);
   });
 
-  it("moves obstacles by speed multiplied by elapsed seconds", () => {
-    const field = createField([0.5]);
+  it("uses the shared terrain sample as each gap centre", () => {
+    const { field, terrain } = createField();
 
-    field.update(0.1);
+    for (const obstacle of field.obstacles) {
+      expect(obstacle.terrainHeight).toBe(
+        terrain.sampleAt(obstacle.worldX + obstacle.width / 2).height,
+      );
+      const rectangles = getObstacleRectangles(
+        obstacle,
+        0,
+        gameConfig.world.height,
+      );
+      expect((rectangles.top.height + rectangles.bottom.y) / 2).toBeCloseTo(
+        obstacle.terrainHeight,
+        10,
+      );
+    }
+  });
 
-    expect(field.obstacles.map(({ x }) => x)).toEqual([483, 703, 923]);
+  it("projects world positions using elapsed-distance scrolling", () => {
+    const { field } = createField();
+    const distance = gameConfig.obstacles.scrollSpeed * 0.1;
+
+    expect(
+      field.obstacles.map(
+        (obstacle) =>
+          getObstacleRectangles(obstacle, distance, gameConfig.world.height).top
+            .x,
+      ),
+    ).toEqual([483, 703, 923]);
   });
 
   it("recycles offscreen obstacles without growing the pool", () => {
-    const field = createField([0.5]);
+    const { field, terrain } = createField();
+    const worldDistance = gameConfig.obstacles.scrollSpeed * 4;
 
-    field.update(4);
-    field.recycleOffscreen();
+    field.recycleOffscreen(worldDistance);
 
     expect(field.obstacles).toHaveLength(3);
-    expect(field.obstacles.map(({ x }) => x)).toEqual([480, 40, 260]);
+    expect(field.obstacles.map(({ worldX }) => worldX)).toEqual([
+      1160, 720, 940,
+    ]);
+    expect(
+      field.obstacles.map((obstacle) => obstacle.worldX - worldDistance),
+    ).toEqual([480, 40, 260]);
     expect(field.obstacles.every(({ scored }) => !scored)).toBe(true);
+    expect(field.obstacles[0]?.terrainHeight).toBe(
+      terrain.sampleAt(1192).height,
+    );
   });
 
   it("clears the scored flag only on the recycled obstacle", () => {
-    const field = createField([0.5]);
+    const { field } = createField();
+    const worldDistance = gameConfig.obstacles.scrollSpeed * 4;
 
-    field.update(4);
-    expect(awardPassedObstacles(field.obstacles, 110)).toBe(2);
-    field.recycleOffscreen();
+    expect(
+      awardPassedObstacles(
+        field.obstacles,
+        worldDistance + gameConfig.player.x,
+      ),
+    ).toBe(2);
+    field.recycleOffscreen(worldDistance);
 
     expect(field.obstacles[0]?.scored).toBe(false);
     expect(field.obstacles[1]?.scored).toBe(true);
+  });
+
+  it("keeps terrain-aligned gaps inside safe clearances on slopes", () => {
+    const { field } = createField();
+
+    for (
+      let worldDistance = 0;
+      worldDistance <= 50_000;
+      worldDistance += gameConfig.obstacles.horizontalSpacing
+    ) {
+      field.recycleOffscreen(worldDistance);
+      for (const obstacle of field.obstacles) {
+        const rectangles = getObstacleRectangles(
+          obstacle,
+          worldDistance,
+          gameConfig.world.height,
+        );
+        expect(rectangles.top.height).toBeGreaterThanOrEqual(
+          gameConfig.obstacles.minimumTopClearance,
+        );
+        expect(rectangles.bottom.height).toBeGreaterThanOrEqual(
+          gameConfig.obstacles.minimumBottomClearance,
+        );
+      }
+    }
   });
 });

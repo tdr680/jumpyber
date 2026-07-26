@@ -48,12 +48,39 @@ smoke tests, lint, formatting, production build, and manual browser checks.
 - [x] Add a lockfile-safe GitHub Actions build, test, and Pages deployment workflow.
 - [x] Add production-preview browser coverage for the Pages base path.
 - [x] Document local preview, automatic deployment, and manual deployment.
-- [ ] Enable GitHub Pages with GitHub Actions as the source in repository settings.
-- [ ] Confirm the first successful deployment at `https://tdr680.github.io/jumpyber/`.
+- [x] Enable GitHub Pages with GitHub Actions as the source in repository settings.
+- [x] Confirm the first successful deployment at `https://tdr680.github.io/jumpyber/`.
 
 Deployment configuration verified on 2026-07-26 with formatting, lint, 44 unit
 tests, root and project-path production builds, and four Chromium smoke tests
 against both the development server and each production preview.
+
+## Milestone 1.5 — Procedural ascending and descending world
+
+Detailed design and phased verification are in
+[`TERRAIN_PLAN.md`](TERRAIN_PLAN.md).
+
+- [x] Add typed terrain configuration with documented world-space slope units.
+- [x] Implement deterministic seeded one-dimensional gradient noise without an external dependency.
+- [x] Implement cached, position-indexed terrain slope integration.
+- [x] Keep the opening horizontal and blend smoothly into procedural slope.
+- [x] Add maximum-slope enforcement and smooth boundary bias.
+- [x] Add authoritative world distance and reproducible run-seed lifecycle.
+- [x] Place and recycle obstacles in world space using the shared terrain profile.
+- [x] Use shared terrain samples for rendering, obstacle rectangles, and collision.
+- [x] Render a continuous terrain path from fixed-distance world samples.
+- [x] Add terrain-derived world-boundary collision.
+- [x] Preserve scoring, game over, guarded restart, and all input methods.
+- [x] Add seeded-noise, terrain-profile, geometry, restart, and long-run fairness tests.
+- [x] Add browser smoke coverage for the production terrain build.
+- [x] Update architecture, gameplay, testing, and task documentation after implementation.
+
+Milestone 1.5 verified on 2026-07-26 with 62 unit tests, six Chromium
+development-server tests, six root production-preview tests, six
+GitHub-Pages-path production-preview tests, lint, formatting, TypeScript,
+production builds, and visual inspection of the horizontal opening, descending
+terrain, ascending terrain after a smooth reversal, aligned obstacles, scoring,
+GameOver, and deterministic restart.
 
 ## Milestone 2 — Feel and usability
 

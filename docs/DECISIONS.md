@@ -77,6 +77,49 @@ configuration to a GitHub username.
 `VITE_BASE_PATH` while building and preview-testing. The Pages workflow owns this
 setting for automated deployments.
 
+## ADR-009 — Seeded gradient noise controls terrain slope
+
+**Status:** Accepted
+
+**Decision:** Generate the terrain's target slope with deterministic, seeded
+one-dimensional gradient noise. Derive terrain height continuously by
+integrating that slope across fixed world-space segments. A low noise frequency
+will produce long ascents and descents, and the configured maximum slope is
+measured in vertical logical world units per horizontal logical world unit.
+
+Use one run-scoped terrain profile for rendering, obstacle placement, obstacle
+collision rectangles, and terrain-boundary collision. The opening remains flat
+and blends gradually into procedural slope. Smooth centre and boundary bias
+will turn the profile away from its vertical limits instead of shaping it with
+a hard height clamp.
+
+**Reasoning:** Gradient noise changes continuously and avoids a visible,
+repeating sequence of fixed ascent, crest, and descent phases. Integrating a
+bounded target slope produces coherent geometry without assigning unrelated
+random heights to neighboring samples. A seed makes the course reproducible
+for restart and deterministic tests.
+
+**Consequences:** Terrain generation must be indexed by world position rather
+than frames or rendering samples. The implementation needs deterministic cached
+integration nodes, explicit slope units and limits, a spatial opening blend,
+long-profile fairness tests, and an explicit run seed. The initial Milestone
+1.5 implementation will keep the camera fixed; any later camera must follow the
+shared terrain profile through slower smoothing and must not use independent
+noise.
+
+**Implementation:** `GradientNoise1D` hashes the seed and integer lattice
+position without mutable random state. `TerrainProfile` generates fixed-width
+control nodes in ascending world-space order, linearly interpolates endpoint
+slopes, and analytically integrates within each segment. A weak centre term and
+smooth boundary influence reverse outward slopes before height limits. Restart
+clears the cache but retains the configured seed.
+
+Obstacles store world x and a height sampled from the run's shared terrain
+profile when spawned or recycled. Their single projected rectangle calculation
+is consumed by both rendering and collision. Passage rendering and
+terrain-boundary collision sample that same profile using
+`worldDistance + screenX`.
+
 ## ADR template
 
 Copy this section for future decisions:

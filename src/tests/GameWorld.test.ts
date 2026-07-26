@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 import { gameConfig } from "../config/gameConfig";
 import { GameWorld } from "../game/GameWorld";
 
-const safeScoringRandomValue = (220 - 60) / (365 - 60);
-
 describe("GameWorld states", () => {
   it("starts ready and enters playing on a primary action", () => {
     const world = new GameWorld(gameConfig);
@@ -21,10 +19,12 @@ describe("GameWorld states", () => {
 
     world.update(0.5, false);
     expect(world.snapshot.worldTime).toBe(0);
+    expect(world.snapshot.worldDistance).toBe(0);
 
     world.update(0.1, true);
     world.update(0.5, false);
     expect(world.snapshot.worldTime).toBe(0.6);
+    expect(world.snapshot.worldDistance).toBeCloseTo(102);
   });
 
   it("enters game over and advances only its guard timer", () => {
@@ -46,7 +46,7 @@ describe("GameWorld states", () => {
       ...gameConfig,
       player: {
         ...gameConfig.player,
-        startY: 17,
+        startY: 126,
       },
     };
     const world = new GameWorld(boundaryConfig);
@@ -62,9 +62,14 @@ describe("GameWorld states", () => {
       obstacles: {
         ...gameConfig.obstacles,
         firstSpawnOffset: -290,
+        gapHeight: 100,
+      },
+      player: {
+        ...gameConfig.player,
+        startY: 200,
       },
     };
-    const world = new GameWorld(collisionConfig, { next: () => 0 });
+    const world = new GameWorld(collisionConfig);
 
     world.update(gameConfig.loop.fixedStepSeconds, true);
 
@@ -77,9 +82,14 @@ describe("GameWorld states", () => {
       obstacles: {
         ...gameConfig.obstacles,
         firstSpawnOffset: -355,
+        gapHeight: 100,
+      },
+      player: {
+        ...gameConfig.player,
+        startY: 200,
       },
     };
-    const world = new GameWorld(collisionConfig, { next: () => 0 });
+    const world = new GameWorld(collisionConfig);
 
     world.update(gameConfig.loop.fixedStepSeconds, true);
 
@@ -88,7 +98,7 @@ describe("GameWorld states", () => {
   });
 
   it("ignores restart during the guard and cleanly restarts afterward", () => {
-    const world = new GameWorld(gameConfig, { next: () => 0.5 });
+    const world = new GameWorld(gameConfig);
 
     world.update(gameConfig.loop.fixedStepSeconds, true);
     world.endRun();
@@ -101,12 +111,17 @@ describe("GameWorld states", () => {
     expect(world.snapshot.state).toBe("playing");
     expect(world.snapshot.score).toBe(0);
     expect(world.snapshot.worldTime).toBe(0);
+    expect(world.snapshot.worldDistance).toBe(0);
     expect(world.snapshot.gameOverElapsed).toBe(0);
     expect(world.snapshot.player.velocityY).toBe(
       gameConfig.player.jumpVelocity,
     );
     expect(world.snapshot.obstacles.every(({ scored }) => !scored)).toBe(true);
-    expect(world.snapshot.obstacles[0]?.x).toBe(500);
+    expect(world.snapshot.obstacles[0]?.worldX).toBe(500);
+    expect(world.snapshot.terrain.sampleAt(0)).toEqual({
+      height: gameConfig.terrain.initialHeight,
+      slope: 0,
+    });
   });
 
   it("scores a safe obstacle once and resets a non-zero score on restart", () => {
@@ -117,9 +132,7 @@ describe("GameWorld states", () => {
         firstSpawnOffset: -355,
       },
     };
-    const world = new GameWorld(scoringConfig, {
-      next: () => safeScoringRandomValue,
-    });
+    const world = new GameWorld(scoringConfig);
 
     world.update(gameConfig.loop.fixedStepSeconds, true);
     expect(world.snapshot.state).toBe("playing");
@@ -134,6 +147,30 @@ describe("GameWorld states", () => {
 
     expect(world.snapshot.state).toBe("playing");
     expect(world.snapshot.score).toBe(0);
+    expect(world.snapshot.worldDistance).toBe(0);
     expect(world.snapshot.obstacles.every(({ scored }) => !scored)).toBe(true);
+  });
+
+  it("reproduces terrain samples and obstacle placement after restart", () => {
+    const world = new GameWorld(gameConfig);
+    const openingObstacleHeight = world.snapshot.obstacles[0]?.terrainHeight;
+    const expectedTerrain = world.snapshot.terrain.sampleAt(2_000);
+
+    world.update(gameConfig.loop.fixedStepSeconds, true);
+    for (let index = 0; index < 1_000; index += 1) {
+      world.update(gameConfig.loop.fixedStepSeconds, index % 45 === 0);
+      if (world.snapshot.state === "gameOver") {
+        break;
+      }
+    }
+    world.endRun();
+    world.update(gameConfig.restart.guardSeconds, false);
+    world.update(gameConfig.loop.fixedStepSeconds, true);
+
+    expect(world.snapshot.terrainSeed).toBe(gameConfig.terrain.seed);
+    expect(world.snapshot.terrain.sampleAt(2_000)).toEqual(expectedTerrain);
+    expect(world.snapshot.obstacles[0]?.terrainHeight).toBe(
+      openingObstacleHeight,
+    );
   });
 });

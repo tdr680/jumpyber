@@ -1,6 +1,6 @@
 import type { GameConfig } from "../config/gameConfig";
-import type { RandomSource } from "../core/random";
 import type { ObstaclePair } from "./Obstacle";
+import type { TerrainSampler } from "./terrain/TerrainTypes";
 
 type ObstacleConfig = GameConfig["obstacles"];
 
@@ -8,10 +8,9 @@ export class ObstacleField {
   private readonly obstaclePairs: ObstaclePair[] = [];
 
   public constructor(
-    private readonly worldHeight: number,
     private readonly worldWidth: number,
     private readonly config: ObstacleConfig,
-    private readonly randomSource: RandomSource,
+    private readonly terrain: TerrainSampler,
   ) {
     this.reset();
   }
@@ -24,51 +23,44 @@ export class ObstacleField {
     this.obstaclePairs.length = 0;
 
     for (let index = 0; index < this.config.poolSize; index += 1) {
-      this.obstaclePairs.push({
-        x:
+      this.obstaclePairs.push(
+        this.createObstacle(
           this.worldWidth +
-          this.config.firstSpawnOffset +
-          index * this.config.horizontalSpacing,
-        width: this.config.width,
-        gapTop: this.createGapTop(),
-        gapHeight: this.config.gapHeight,
-        scored: false,
-      });
+            this.config.firstSpawnOffset +
+            index * this.config.horizontalSpacing,
+        ),
+      );
     }
   }
 
-  public update(deltaSeconds: number): void {
-    const distance = this.config.scrollSpeed * deltaSeconds;
-
+  public recycleOffscreen(worldDistance: number): void {
     for (const obstacle of this.obstaclePairs) {
-      obstacle.x -= distance;
-    }
-  }
-
-  public recycleOffscreen(): void {
-    for (const obstacle of this.obstaclePairs) {
-      if (obstacle.x + obstacle.width >= 0) {
+      if (obstacle.worldX + obstacle.width >= worldDistance) {
         continue;
       }
 
-      const rightmostX = Math.max(
-        ...this.obstaclePairs.map((candidate) => candidate.x),
+      const rightmostWorldX = Math.max(
+        ...this.obstaclePairs.map((candidate) => candidate.worldX),
       );
-      obstacle.x = rightmostX + this.config.horizontalSpacing;
-      obstacle.gapTop = this.createGapTop();
+      obstacle.worldX = rightmostWorldX + this.config.horizontalSpacing;
       obstacle.gapHeight = this.config.gapHeight;
       obstacle.width = this.config.width;
+      obstacle.terrainHeight = this.sampleObstacleHeight(obstacle.worldX);
       obstacle.scored = false;
     }
   }
 
-  private createGapTop(): number {
-    const minimum = this.config.minimumTopClearance;
-    const maximum =
-      this.worldHeight -
-      this.config.minimumBottomClearance -
-      this.config.gapHeight;
-    const randomValue = Math.min(1, Math.max(0, this.randomSource.next()));
-    return minimum + randomValue * (maximum - minimum);
+  private createObstacle(worldX: number): ObstaclePair {
+    return {
+      worldX,
+      width: this.config.width,
+      gapHeight: this.config.gapHeight,
+      terrainHeight: this.sampleObstacleHeight(worldX),
+      scored: false,
+    };
+  }
+
+  private sampleObstacleHeight(worldX: number): number {
+    return this.terrain.sampleAt(worldX + this.config.width / 2).height;
   }
 }

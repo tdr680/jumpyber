@@ -1,9 +1,8 @@
 import { GameState, type GameState as GameStateValue } from "../app/GameState";
 import type { GameConfig } from "../config/gameConfig";
-import { MathRandomSource, type RandomSource } from "../core/random";
 import {
   circleIntersectsRectangle,
-  circleTouchesWorldBoundary,
+  circleTouchesTerrainPassage,
 } from "./Collision";
 import { getObstacleRectangles, type ObstaclePair } from "./Obstacle";
 import { ObstacleField } from "./ObstacleField";
@@ -15,12 +14,17 @@ import {
   updatePlayer,
 } from "./Player";
 import { awardPassedObstacles } from "./Score";
+import { TerrainProfile } from "./terrain/TerrainProfile";
+import type { TerrainSampler } from "./terrain/TerrainTypes";
 
 export interface GameSnapshot {
   readonly state: GameStateValue;
   readonly score: number;
   readonly worldTime: number;
+  readonly worldDistance: number;
   readonly gameOverElapsed: number;
+  readonly terrainSeed: number;
+  readonly terrain: TerrainSampler;
   readonly player: Readonly<PlayerState>;
   readonly obstacles: ReadonlyArray<Readonly<ObstaclePair>>;
 }
@@ -29,20 +33,19 @@ export class GameWorld {
   private state: GameStateValue = GameState.Ready;
   private score = 0;
   private worldTime = 0;
+  private worldDistance = 0;
   private gameOverElapsed = 0;
   private readonly player: PlayerState;
   private readonly obstacleField: ObstacleField;
+  private readonly terrain: TerrainProfile;
 
-  public constructor(
-    private readonly config: GameConfig,
-    randomSource: RandomSource = new MathRandomSource(),
-  ) {
+  public constructor(private readonly config: GameConfig) {
     this.player = createPlayer(config.player);
+    this.terrain = new TerrainProfile(config.terrain);
     this.obstacleField = new ObstacleField(
-      config.world.height,
       config.world.width,
       config.obstacles,
-      randomSource,
+      this.terrain,
     );
   }
 
@@ -51,7 +54,10 @@ export class GameWorld {
       state: this.state,
       score: this.score,
       worldTime: this.worldTime,
+      worldDistance: this.worldDistance,
       gameOverElapsed: this.gameOverElapsed,
+      terrainSeed: this.config.terrain.seed,
+      terrain: this.terrain,
       player: this.player,
       obstacles: this.obstacleField.obstacles,
     };
@@ -85,7 +91,7 @@ export class GameWorld {
     }
 
     updatePlayer(this.player, deltaSeconds, this.config.player);
-    this.obstacleField.update(deltaSeconds);
+    this.worldDistance += this.config.obstacles.scrollSpeed * deltaSeconds;
     this.worldTime += deltaSeconds;
 
     if (this.hasCollision()) {
@@ -95,9 +101,9 @@ export class GameWorld {
 
     this.score += awardPassedObstacles(
       this.obstacleField.obstacles,
-      this.player.x,
+      this.worldDistance + this.player.x,
     );
-    this.obstacleField.recycleOffscreen();
+    this.obstacleField.recycleOffscreen(this.worldDistance);
   }
 
   public endRun(): void {
@@ -114,13 +120,24 @@ export class GameWorld {
   }
 
   private hasCollision(): boolean {
-    if (circleTouchesWorldBoundary(this.player, this.config.world.height)) {
+    const playerTerrain = this.terrain.sampleAt(
+      this.worldDistance + this.player.x,
+    );
+
+    if (
+      circleTouchesTerrainPassage(
+        this.player,
+        playerTerrain,
+        this.config.terrain.passageHalfHeight,
+      )
+    ) {
       return true;
     }
 
     return this.obstacleField.obstacles.some((obstacle) => {
       const rectangles = getObstacleRectangles(
         obstacle,
+        this.worldDistance,
         this.config.world.height,
       );
       return (
@@ -134,8 +151,10 @@ export class GameWorld {
     this.state = GameState.Playing;
     this.score = 0;
     this.worldTime = 0;
+    this.worldDistance = 0;
     this.gameOverElapsed = 0;
     resetPlayer(this.player, this.config.player);
+    this.terrain.reset();
     this.obstacleField.reset();
   }
 }
