@@ -13,7 +13,7 @@ async function expectCleanPage(page: Page): Promise<{
     }
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
-  await page.goto("/");
+  await page.goto("./");
   return { consoleErrors, pageErrors };
 }
 

@@ -41,6 +41,20 @@ production-build, and Chromium smoke-test checks.
 Milestone 1 verified on 2026-07-20 with 44 unit tests, four Chromium
 smoke tests, lint, formatting, production build, and manual browser checks.
 
+## Deployment — GitHub Pages
+
+- [x] Add an environment-driven Vite base path for project-site builds.
+- [x] Preserve root-path development, builds, and production previews.
+- [x] Add a lockfile-safe GitHub Actions build, test, and Pages deployment workflow.
+- [x] Add production-preview browser coverage for the Pages base path.
+- [x] Document local preview, automatic deployment, and manual deployment.
+- [ ] Enable GitHub Pages with GitHub Actions as the source in repository settings.
+- [ ] Confirm the first successful deployment at `https://tdr680.github.io/jumpyber/`.
+
+Deployment configuration verified on 2026-07-26 with formatting, lint, 44 unit
+tests, root and project-path production builds, and four Chromium smoke tests
+against both the development server and each production preview.
+
 ## Milestone 2 — Feel and usability
 
 - [ ] Tune gravity, jump velocity, gap size, speed, and spacing through repeated playtests.
@@ -65,13 +79,13 @@ smoke tests, lint, formatting, production build, and manual browser checks.
 
 ## Milestone 4 — Release readiness
 
-- [ ] Test production build through a static HTTP server.
+- [x] Test production build through a static HTTP server.
 - [ ] Verify desktop Chrome, Safari, and Firefox.
 - [ ] Verify mobile Safari and mobile Chrome where available.
 - [ ] Audit keyboard accessibility and focus behavior.
-- [ ] Confirm no runtime network dependency.
+- [x] Confirm no runtime network dependency.
 - [ ] Confirm there are no console errors during a complete run/restart cycle.
-- [ ] Add deployment instructions to `README.md`.
+- [x] Add deployment instructions to `README.md`.
 - [ ] Record final architecture decisions in `DECISIONS.md`.
 
 ## Later ideas — not part of the MVP

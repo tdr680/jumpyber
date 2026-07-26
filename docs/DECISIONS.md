@@ -60,6 +60,23 @@ Use this file for decisions that future contributors or agents should not repeat
 
 **Consequences:** A normal 60 Hz presentation frame performs approximately two simulation updates. Rendering currently uses the latest state without interpolation.
 
+## ADR-008 — Environment-driven deployment base path
+
+**Status:** Accepted
+
+**Decision:** Keep Vite's base path at `/` by default and allow deployment builds
+to set `VITE_BASE_PATH`. The GitHub Pages workflow derives
+`/<repository-name>/` from GitHub's repository context.
+
+**Reasoning:** Local development, root-hosted builds, and existing source asset
+references remain unchanged, while a GitHub Pages project site receives URLs
+that include its repository path. Deriving the path avoids coupling the build
+configuration to a GitHub username.
+
+**Consequences:** Any build served below a URL prefix must set the same
+`VITE_BASE_PATH` while building and preview-testing. The Pages workflow owns this
+setting for automated deployments.
+
 ## ADR template
 
 Copy this section for future decisions:
