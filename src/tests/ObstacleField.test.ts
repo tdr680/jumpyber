@@ -122,4 +122,34 @@ describe("ObstacleField", () => {
       }
     }
   });
+
+  it("varies full top and bottom rectangle heights as the terrain gap moves", () => {
+    const { field } = createField();
+    const topHeights: number[] = [];
+    const bottomHeights: number[] = [];
+
+    for (
+      let worldDistance = 0;
+      worldDistance <= 50_000;
+      worldDistance += gameConfig.obstacles.horizontalSpacing
+    ) {
+      field.recycleOffscreen(worldDistance);
+      for (const obstacle of field.obstacles) {
+        const rectangles = getObstacleRectangles(
+          obstacle,
+          worldDistance,
+          gameConfig.world.height,
+        );
+        topHeights.push(rectangles.top.height);
+        bottomHeights.push(rectangles.bottom.height);
+      }
+    }
+
+    expect(Math.max(...topHeights) - Math.min(...topHeights)).toBeGreaterThan(
+      100,
+    );
+    expect(
+      Math.max(...bottomHeights) - Math.min(...bottomHeights),
+    ).toBeGreaterThan(100);
+  });
 });

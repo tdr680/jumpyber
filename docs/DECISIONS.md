@@ -120,6 +120,54 @@ is consumed by both rendering and collision. Passage rendering and
 terrain-boundary collision sample that same profile using
 `worldDistance + screenX`.
 
+## ADR-010 — Player sprite is presentation-only with a Canvas fallback
+
+**Status:** Accepted
+
+**Decision:** Render the player from a six-frame 96×96 transparent sprite sheet
+loaded from Vite's deployment-relative public asset path. Select frames through
+pure game-state and velocity bands, use the common centre anchor for every
+frame, and retain the original Canvas primitive player if the image cannot
+load.
+
+**Reasoning:** A small fixed sheet adds readable motion without coupling
+animation timing to simulation or adding an asset framework. Broad rise, apex,
+and fall thresholds avoid rapid flicker. A deployment-relative URL works for
+both local root hosting and the GitHub Pages project base.
+
+**Consequences:** The generated image, frame metadata, prompt, and deterministic
+normalization script are versioned together. The visual frame rectangle and
+decorative limbs do not change the explicit player collision radius. Browser
+tests must confirm the sheet loads in root and Pages-path production previews.
+
+## ADR-011 — Modular obstacle sprites derive from shared gameplay geometry
+
+**Status:** Accepted
+
+**Decision:** Render obstacles from a transparent gap cap, vertically repeated
+body tile, terrain footing, and silhouette-compatible damaged cap. Derive every
+component placement from the existing obstacle collision rectangles and stored
+terrain height. Repeat the body across the complete top or bottom collision
+rectangle, overlay the footing at the terrain boundary, use the sampled terrain
+slope only to rotate that footing, mirror cap and base assets for upper posts,
+and retain the original Canvas rectangles as an all-components load fallback.
+
+**Reasoning:** Modular pieces keep short and tall posts readable without
+stretching generated detail. Reusing authoritative geometry prevents art from
+drifting away from collision as terrain ascends or descends. Neutral lighting
+makes vertical mirroring coherent, and a complete-set fallback avoids
+partially rendered hazards. Filling the full authoritative rectangles preserves
+the varying post heights and terrain-following gap positions that existed
+before sprite integration.
+
+**Consequences:** Runtime dimensions, asset paths, overlap, and visual-variation
+interval are typed configuration. Cap and base overhang is decorative and does
+not expand the explicit 64-unit collision width. The generated source prompt,
+deterministic normalization script, seam correction, and transparent runtime
+PNGs are versioned together. The fixed-size gap remains centred directly on the
+shared terrain sample; no separate obstacle-height randomness is introduced.
+Browser tests verify deployment-relative loading.
+
 ## ADR template
 
 Copy this section for future decisions:

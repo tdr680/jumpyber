@@ -96,6 +96,18 @@ These are starting values. Keep them centralized and tune through playtesting.
 
 Each primary action while playing sets or approaches the upward velocity. Start with directly assigning `jumpVelocity`; more advanced impulse accumulation is unnecessary for the MVP.
 
+The visual player pose is selected independently from collision:
+
+- Ready uses the neutral frame.
+- A strong fresh upward velocity uses jump.
+- Sustained upward velocity uses rise.
+- A broad near-zero velocity band uses apex to prevent flicker.
+- Downward velocity uses fall.
+- GameOver uses hit.
+
+The sprite is centred on the simulation position with a shared frame anchor.
+Physics and the collision circle do not change with animation pose.
+
 ## Obstacles
 
 Each obstacle is a pair of solid regions separated by a vertical gap.
@@ -112,9 +124,10 @@ minimumBottomClearance: 80 units
 ```
 
 Obstacle gaps are centred on the terrain sample at the obstacle's world-space
-centre. They do not receive independent vertical randomness. Terrain minimum
-and maximum heights preserve the configured top and bottom clearances even at
-the most extreme allowed profile height.
+centre. They do not receive independent vertical randomness. As procedural
+terrain rises and falls, the complete top and bottom obstacle rectangles and
+the gap's vertical position vary with it. Terrain minimum and maximum heights
+preserve the configured top and bottom clearances.
 
 Represent an obstacle pair as one gameplay object containing:
 
@@ -127,6 +140,14 @@ Represent an obstacle pair as one gameplay object containing:
 Screen x is derived by subtracting `worldDistance`. Reuse obstacle objects or
 recycle them forward after they leave the screen, resampling the same
 deterministic terrain profile at their new world position.
+
+Modular obstacle sprites are presentation-only. Their body uses the existing
+64-unit obstacle width, gap-facing caps terminate the same shared collision
+rectangles, and terrain bases are positioned from the same stored terrain
+height. Footings may rotate to match the sampled local slope, but no sprite
+changes spacing, gap size, collision, scoring, or recycling. Body tiles fill
+the complete top and bottom collision rectangles, restoring the varying
+heights and terrain-following gap position used by the Canvas placeholders.
 
 ## Collision
 

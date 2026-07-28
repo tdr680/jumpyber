@@ -31,6 +31,12 @@ Prioritize pure logic.
   position.
 - Terrain-aligned gaps remain inside safe bounds on long ascending and
   descending sections.
+- Modular cap/body/base assembly terminates at the same gap and terrain
+  boundaries as the authoritative obstacle rectangles.
+- Modular body tiles cover the complete varying top and bottom collision
+  rectangles used before sprite integration.
+- The repeatable body has matching top and bottom pixel rows, and the damaged
+  cap selection does not alter geometry.
 
 ### Procedural terrain
 
@@ -76,6 +82,8 @@ Required smoke tests:
 7. A controlled run advances beyond the flat opening and scores an obstacle.
 8. Terrain collision reaches GameOver and restart restores the deterministic
    opening.
+9. Player and obstacle sprite assets load through both root and GitHub Pages
+   base paths.
 
 Expose a minimal development-only test seam only when visual state cannot be reliably observed. Do not expose mutable production cheats globally without a build guard.
 

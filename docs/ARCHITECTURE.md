@@ -106,7 +106,14 @@ src/input/InputController.ts
   Browser events normalized to game actions.
 
 src/rendering/CanvasRenderer.ts
-  All Canvas drawing.
+  All Canvas drawing, sprite loading, and procedural player fallback.
+
+src/rendering/PlayerSprite.ts
+  Pure game-state/velocity-to-frame selection and stable frame ordering.
+
+src/rendering/ObstacleSprite.ts
+  Pure cap/body/base assembly geometry derived from authoritative obstacle
+  rectangles and the shared terrain sample.
 
 src/rendering/Viewport.ts
   Logical-to-physical scaling and coordinate conversion.
@@ -214,6 +221,40 @@ order and cached. Within a segment, slope is interpolated linearly and height
 is the analytical integral of that interpolation. Query order, frame delta,
 display refresh rate, and renderer sample spacing therefore cannot change a
 sample at a given `worldX`.
+
+## Player sprite rendering
+
+The player sprite sheet is a public static asset addressed through Vite's
+`BASE_URL`, so root development and GitHub Pages project paths use the same
+renderer code. `CanvasRenderer` loads the PNG once, reports load state through a
+read-only canvas data attribute used by browser tests, and draws a 96×96 source
+frame around the shared `(48, 48)` anchor.
+
+`PlayerSprite` maps Ready and GameOver directly and divides Playing velocity
+into jump, rise, apex, and fall bands. The apex band spans both sides of zero to
+avoid rapid frame flicker. Asset loading and pose selection never modify player
+physics or collision. If loading fails, the renderer uses the original
+Canvas-drawn player.
+
+## Modular obstacle sprite rendering
+
+`CanvasRenderer` loads four public obstacle components through Vite's
+deployment-relative `BASE_URL`. It switches to the modular set only when every
+image has loaded with its configured source dimensions; otherwise it keeps the
+existing collision-aligned Canvas obstacle fallback.
+
+`ObstacleSprite` derives both visible posts from the same rectangles returned
+by `getObstacleRectangles`. The cap touches the authoritative gap edge, the
+body repeats across the complete collision rectangle without stretching its
+internal details, and the base overlays the upper or lower passage boundary
+derived from the obstacle's stored terrain height. As that height changes, the
+gap and the full sprite body lengths change exactly as the pre-sprite Canvas
+rectangles did. The renderer samples the same terrain profile at the obstacle
+centre only to rotate the neutral footing by the local slope. No visual-only
+world position exists.
+
+Caps and bases are vertically mirrored for the upper post. Decorative
+overhangs do not modify the 64-unit axis-aligned collision rectangle.
 
 The opening has exactly zero slope and eases into noise. A weak centre bias plus
 smooth attenuation and inward bias near vertical limits prevents unbounded

@@ -63,6 +63,9 @@ test("loads and renders the responsive ready state", async ({ page }) => {
   const canvas = page.locator("#game-canvas");
   await expect(canvas).toBeVisible();
   await expect(canvas).toHaveAttribute("data-game-state", "ready");
+  await expect(canvas).toHaveAttribute("data-player-sprite", "loaded");
+  await expect(canvas).toHaveAttribute("data-obstacle-sprites", "loaded");
+  await expect(canvas).toHaveAttribute("data-player-frame", "ready");
 
   const initialSize = await canvas.boundingBox();
   expect(initialSize?.width).toBeGreaterThan(0);
@@ -90,6 +93,52 @@ test("keyboard input starts the game", async ({ page }) => {
   await expect(page.locator("#game-canvas")).toHaveAttribute(
     "data-game-state",
     "playing",
+  );
+});
+
+test("player sprite follows jump velocity through stable pose bands", async ({
+  page,
+}) => {
+  await expectCleanPage(page);
+  const canvas = page.locator("#game-canvas");
+
+  await expect(canvas).toHaveAttribute("data-player-sprite", "loaded");
+  await expect(canvas).toHaveAttribute("data-player-frame", "ready");
+  await page.evaluate(() => {
+    const gameCanvas =
+      document.querySelector<HTMLCanvasElement>("#game-canvas");
+    if (gameCanvas === null) {
+      throw new Error("Game canvas is unavailable.");
+    }
+
+    const observedFrames = [gameCanvas.dataset.playerFrame];
+    const observer = new MutationObserver(() => {
+      observedFrames.push(gameCanvas.dataset.playerFrame);
+    });
+    observer.observe(gameCanvas, {
+      attributeFilter: ["data-player-frame"],
+      attributes: true,
+    });
+    window.setTimeout(() => observer.disconnect(), 1_000);
+    (
+      window as typeof window & {
+        observedPlayerFrames?: Array<string | undefined>;
+      }
+    ).observedPlayerFrames = observedFrames;
+  });
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(700);
+
+  const observedFrames = await page.evaluate(
+    () =>
+      (
+        window as typeof window & {
+          observedPlayerFrames?: Array<string | undefined>;
+        }
+      ).observedPlayerFrames ?? [],
+  );
+  expect(observedFrames).toEqual(
+    expect.arrayContaining(["ready", "jump", "rise", "apex", "fall"]),
   );
 });
 
@@ -147,6 +196,7 @@ test("terrain collision reaches game over and restart resets the opening", async
   await expect(canvas).toHaveAttribute("data-game-state", "gameOver", {
     timeout: 4_000,
   });
+  await expect(canvas).toHaveAttribute("data-player-frame", "hit");
 
   await page.waitForTimeout(300);
   await canvas.click();

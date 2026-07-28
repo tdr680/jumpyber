@@ -1,0 +1,133 @@
+{
+  "image": "player-sheet.png",
+  "frameSize": {
+    "width": 96,
+    "height": 96
+  },
+  "columns": 6,
+  "rows": 1,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "frames": {
+    "ready": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 96,
+        "height": 96
+      },
+      "anchor": {
+        "x": 48,
+        "y": 48
+      }
+    },
+    "jump": {
+      "rect": {
+        "x": 96,
+        "y": 0,
+        "width": 96,
+        "height": 96
+      },
+      "anchor": {
+        "x": 48,
+        "y": 48
+      }
+    },
+    "rise": {
+      "rect": {
+        "x": 192,
+        "y": 0,
+        "width": 96,
+        "height": 96
+      },
+      "anchor": {
+        "x": 48,
+        "y": 48
+      }
+    },
+    "apex": {
+      "rect": {
+        "x": 288,
+        "y": 0,
+        "width": 96,
+        "height": 96
+      },
+      "anchor": {
+        "x": 48,
+        "y": 48
+      }
+    },
+    "fall": {
+      "rect": {
+        "x": 384,
+        "y": 0,
+        "width": 96,
+        "height": 96
+      },
+      "anchor": {
+        "x": 48,
+        "y": 48
+      }
+    },
+    "hit": {
+      "rect": {
+        "x": 480,
+        "y": 0,
+        "width": 96,
+        "height": 96
+      },
+      "anchor": {
+        "x": 48,
+        "y": 48
+      }
+    }
+  },
+  "processing": {
+    "sourceCellSize": {
+      "width": 362,
+      "height": 724
+    },
+    "contentSize": 80,
+    "sharedScale": 0.23529412,
+    "alphaBounds": {
+      "ready": {
+        "left": 119,
+        "top": 204,
+        "right": 265,
+        "bottom": 531
+      },
+      "jump": {
+        "left": 91,
+        "top": 247,
+        "right": 255,
+        "bottom": 484
+      },
+      "rise": {
+        "left": 46,
+        "top": 166,
+        "right": 251,
+        "bottom": 492
+      },
+      "apex": {
+        "left": 32,
+        "top": 153,
+        "right": 231,
+        "bottom": 493
+      },
+      "fall": {
+        "left": 19,
+        "top": 227,
+        "right": 232,
+        "bottom": 520
+      },
+      "hit": {
+        "left": 47,
+        "top": 236,
+        "right": 266,
+        "bottom": 509
+      }
+    }
+  }
+}

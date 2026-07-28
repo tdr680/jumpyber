@@ -82,6 +82,48 @@ production builds, and visual inspection of the horizontal opening, descending
 terrain, ascending terrain after a smooth reversal, aligned obstacles, scoring,
 GameOver, and deterministic restart.
 
+## Player sprite asset
+
+- [x] Generate one consistent six-pose stick-figure source sheet with ImageGen.
+- [x] Remove the chroma background and preserve transparent antialiased edges.
+- [x] Normalize six 96×96 frames with one scale and shared centre anchor.
+- [x] Export player sheet metadata and preserve the reusable generation prompt.
+- [x] Add deterministic sheet-processing tooling and inspect a contact preview.
+- [x] Load the sheet through Vite's deployment base with a Canvas fallback.
+- [x] Map Ready, jump, rise, apex, fall, and GameOver to stable frames.
+- [x] Keep player collision independent from sprite padding and pose.
+- [x] Verify sprite animation in development and production browser tests.
+
+Player sprite verified on 2026-07-26 with 66 unit tests, seven Chromium
+development-server tests, seven root production-preview tests, seven
+GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
+production builds, normalized-sheet inspection, and runtime visual review.
+
+## Modular obstacle sprite asset
+
+- [x] Generate a coherent cap, repeatable body, terrain base, and damaged cap with ImageGen.
+- [x] Remove the chroma background and export four normalized transparent PNGs.
+- [x] Correct the body tile seam and inspect short, tall, and terrain-aligned previews.
+- [x] Preserve the reusable prompt and deterministic processing script.
+- [x] Derive sprite assembly from shared obstacle rectangles and terrain samples.
+- [x] Mirror neutral cap and base assets for upper obstacles.
+- [x] Keep collision, spacing, gap size, scoring, recycling, and terrain generation unchanged.
+- [x] Load assets through Vite's deployment base with a Canvas fallback.
+- [x] Verify development, root-preview, and GitHub-Pages-path browser behavior.
+- [x] Restore pre-sprite varying full obstacle heights and terrain-following gap positions.
+
+Modular obstacle sprites verified on 2026-07-26 with 70 unit tests, seven
+Chromium development-server tests, seven root production-preview tests, seven
+GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
+production builds, transparent-asset validation, assembled-height previews,
+terrain-slope previews, and live runtime screenshots.
+
+Pre-sprite obstacle geometry restored on 2026-07-28 and verified with 72 unit
+tests, seven Chromium development-server tests, seven root production-preview
+tests, seven GitHub-Pages-path production-preview tests, TypeScript, lint,
+production builds, and live comparison of full-height sprite assemblies across
+multiple terrain positions.
+
 ## Milestone 2 — Feel and usability
 
 - [ ] Tune gravity, jump velocity, gap size, speed, and spacing through repeated playtests.
