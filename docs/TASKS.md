@@ -99,30 +99,23 @@ development-server tests, seven root production-preview tests, seven
 GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
 production builds, normalized-sheet inspection, and runtime visual review.
 
-## Modular obstacle sprite asset
+## Obstacle body sprite asset
 
-- [x] Generate a coherent cap, repeatable body, terrain base, and damaged cap with ImageGen.
-- [x] Remove the chroma background and export four normalized transparent PNGs.
-- [x] Correct the body tile seam and inspect short, tall, and terrain-aligned previews.
-- [x] Preserve the reusable prompt and deterministic processing script.
-- [x] Derive sprite assembly from shared obstacle rectangles and terrain samples.
-- [x] Mirror neutral cap and base assets for upper obstacles.
+- [x] Keep one transparent 64×64 repeatable obstacle body tile.
+- [x] Remove the cap, base, and damaged-cap assets.
+- [x] Remove multi-piece assembly, mirroring, rotation, and variation code.
+- [x] Tile the body directly through shared top and bottom collision rectangles.
+- [x] Preserve varying obstacle heights and terrain-following gap positions.
 - [x] Keep collision, spacing, gap size, scoring, recycling, and terrain generation unchanged.
-- [x] Load assets through Vite's deployment base with a Canvas fallback.
+- [x] Preserve a deterministic body-processing script and reusable prompt.
+- [x] Load the body through Vite's deployment base with a Canvas fallback.
 - [x] Verify development, root-preview, and GitHub-Pages-path browser behavior.
-- [x] Restore pre-sprite varying full obstacle heights and terrain-following gap positions.
 
-Modular obstacle sprites verified on 2026-07-26 with 70 unit tests, seven
-Chromium development-server tests, seven root production-preview tests, seven
-GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
-production builds, transparent-asset validation, assembled-height previews,
-terrain-slope previews, and live runtime screenshots.
-
-Pre-sprite obstacle geometry restored on 2026-07-28 and verified with 72 unit
-tests, seven Chromium development-server tests, seven root production-preview
-tests, seven GitHub-Pages-path production-preview tests, TypeScript, lint,
-production builds, and live comparison of full-height sprite assemblies across
-multiple terrain positions.
+The body-only obstacle renderer was verified on 2026-07-29 with 68 unit tests,
+seven Chromium development-server tests, seven root production-preview tests,
+seven GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
+production builds, deterministic asset reproduction, seam validation, and live
+inspection across multiple terrain positions.
 
 ## Milestone 2 — Feel and usability
 

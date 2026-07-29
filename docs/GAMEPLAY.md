@@ -141,13 +141,11 @@ Screen x is derived by subtracting `worldDistance`. Reuse obstacle objects or
 recycle them forward after they leave the screen, resampling the same
 deterministic terrain profile at their new world position.
 
-Modular obstacle sprites are presentation-only. Their body uses the existing
-64-unit obstacle width, gap-facing caps terminate the same shared collision
-rectangles, and terrain bases are positioned from the same stored terrain
-height. Footings may rotate to match the sampled local slope, but no sprite
-changes spacing, gap size, collision, scoring, or recycling. Body tiles fill
-the complete top and bottom collision rectangles, restoring the varying
-heights and terrain-following gap position used by the Canvas placeholders.
+The obstacle body sprite is presentation-only. One seamless 64×64 tile fills
+the complete top and bottom collision rectangles. There are no separate caps,
+bases, or variations, so rendering preserves the same varying heights and
+terrain-following gap position as the Canvas placeholders without changing
+spacing, gap size, collision, scoring, or recycling.
 
 ## Collision
 

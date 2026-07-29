@@ -1,4 +1,4 @@
-# Modular Obstacle Sprite ImageGen Prompt
+# Obstacle Body Sprite ImageGen Prompt
 
 ## Selected generation
 
@@ -6,28 +6,24 @@
 - Selected result:
   `/home/tomas/.codex/generated_images/019f6a62-16f0-72c1-b1c9-354d8d46dbfa/call_LoM3U9tE84vVXPe25gkyLhp2.png`
 - Raw selected dimensions: 1774×887 pixels.
-- Selection notes: the result has one coherent charcoal industrial style,
-  consistent outline weight, neutral lighting, matching normal/damaged cap
-  silhouettes, a clean central body section, and a base with a compatible
-  connector. The generator combined stems with the cap and base, so the useful
-  component regions were extracted instead of treating the broad columns as
-  finished sprites.
-- Runtime outputs: cap 96×48, body 64×64, base 96×48, and damaged cap
-  96×48, all transparent RGBA PNGs.
+- Selected region: the uninterrupted straight body section from the generated
+  source. The cap, base, and damaged variation were intentionally removed from
+  the runtime design.
+- Runtime output: one 64×64 transparent RGBA body tile.
 
 ## Reusable generation prompt
 
 ```text
 Use case: stylized-concept
-Asset type: high-resolution source sheet for modular 2D browser-game obstacle sprites
-Primary request: Create exactly four separate industrial post / pipe barrier components arranged in one horizontal row with generous separation: (1) a gap-facing end cap for a lower obstacle, with a straight 64-unit-wide central post connection entering from the bottom and a wider sturdy lip facing upward; (2) a straight vertical repeatable body section whose top and bottom cuts are perfectly matching and tile seamlessly, same 64-unit central width, with no top or bottom termination; (3) a terrain base with the same straight central post connection entering from the top and a slightly wider, flat neutral footing at the bottom, with no terrain angle baked in; (4) a restrained damaged variation of component 1 with exactly the same outer dimensions and collision silhouette, only a few small internal scratches or dents.
-Scene/backdrop: perfectly flat solid #00ff00 chroma-key background for later removal; one uniform color with no gradients, texture, floor plane, or variation.
-Style/medium: minimalist hand-inked game sprite components, schematic industrial pipe/post, slightly imperfect hand-drawn geometry, bold nearly-black outline, dark charcoal-gray fill, extremely limited internal detail, worn but functional, clear silhouette at small size.
-Composition/framing: four isolated components only, equal visual scale, upright, aligned along one horizontal row, generous green padding around every component, no overlap. Cap and base should be wider than the body but their central connection widths must visually match the body exactly. Keep every component fully visible.
-Lighting/mood: flat unlit graphic art; no directional lighting so vertical mirroring remains visually correct.
-Color palette: black outline and dark neutral charcoal-gray fills only; do not use green in the components.
-Constraints: exactly four components; consistent bold outline thickness; body side edges parallel; body top edge and bottom edge must have identical pixel-ready continuation; cap 1 and damaged cap 4 must share the same silhouette; no cast shadow, no contact shadow, no reflection, no transparency illusion.
-Avoid: text, labels, numbers, symbols, warning marks, borders, cell dividers, arrows, guide lines, scenery, characters, UI, perspective, dramatic lighting, bevel shine, rust colors, loose debris, plants, smoke, separate screws protruding beyond silhouette, top or bottom termination on the body tile.
+Asset type: repeatable 2D browser-game obstacle body tile
+Primary request: Create one straight vertical industrial post or pipe body section. It must have parallel sides and identical top and bottom cuts so it tiles vertically without a visible seam. It has no top cap, bottom cap, base, termination, damaged variation, symbols, or labels.
+Scene/backdrop: perfectly flat solid #00ff00 chroma-key background for later removal; one uniform color with no gradients, texture, floor plane, or lighting variation.
+Style/medium: minimalist hand-inked game sprite, schematic industrial pipe/post, slightly imperfect hand-drawn geometry, bold nearly-black outline, dark charcoal-gray fill, extremely limited internal detail, worn but functional, clear at small size.
+Composition/framing: one isolated upright rectangular body tile with generous green padding. Both vertical edges are parallel. The top and bottom must continue seamlessly.
+Lighting/mood: flat unlit graphic art with no directional lighting.
+Color palette: black outline and dark neutral charcoal-gray fill only; do not use green in the obstacle.
+Constraints: consistent bold outline thickness; no detail that becomes visibly stretched or creates a horizontal seam; no cast shadow, contact shadow, reflection, or transparency illusion.
+Avoid: caps, bases, feet, lips, flanges, damage variants, text, labels, numbers, symbols, warning marks, borders, arrows, guide lines, scenery, characters, UI, perspective, dramatic lighting, rust colors, debris, plants, and smoke.
 ```
 
 ## Post-processing
@@ -35,21 +31,12 @@ Avoid: text, labels, numbers, symbols, warning marks, borders, cell dividers, ar
 1. Remove the flat chroma background with the installed ImageGen
    `remove_chroma_key.py` helper using border key detection, a soft matte, and
    despill.
-2. Extract the useful cap, uninterrupted body, base, and damaged-cap regions
-   with the selected source's documented pixel crops.
-3. Remove transparent source padding and normalize to the fixed runtime sizes.
-4. Keep the cap's connector flush with its bottom edge and the base's connector
-   flush with its top edge.
-5. Average and ease the body tile's boundary rows so its top and bottom pixels
-   match exactly. Runtime repeats the tile rather than stretching it.
-6. Export optimized transparent RGBA PNGs.
-7. Generate temporary checkerboard previews for short and tall assemblies and
-   for ascending, flat, and descending terrain. Delete the previews and
-   chroma-key intermediates after inspection.
-
-The upper obstacle reuses vertically mirrored cap and base assets. The neutral
-palette and lack of directional lighting make mirroring safe. The body does not
-need mirroring.
+2. Extract the uninterrupted body region and remove source padding.
+3. Normalize it to one 64×64 transparent RGBA tile.
+4. Average and ease the boundary rows so the first and last rows match exactly.
+5. Generate a temporary preview that tiles the body through complete top and
+   bottom collision rectangles with several terrain-following gap positions.
+6. Delete the preview and chroma-key intermediates after inspection.
 
 The deterministic normalization command is:
 

@@ -36,18 +36,9 @@ export interface GameConfig {
     readonly poolSize: number;
   };
   readonly obstacleSprite: {
-    readonly capImagePath: string;
-    readonly bodyImagePath: string;
-    readonly baseImagePath: string;
-    readonly damagedCapImagePath: string;
-    readonly capSourceSize: Size;
-    readonly bodySourceSize: Size;
-    readonly baseSourceSize: Size;
-    readonly capDrawSize: Size;
-    readonly baseDrawSize: Size;
-    readonly bodyTileHeight: number;
-    readonly connectionOverlap: number;
-    readonly damagedCapInterval: number;
+    readonly imagePath: string;
+    readonly sourceSize: Size;
+    readonly tileHeight: number;
   };
   readonly terrain: {
     readonly seed: number;
@@ -123,33 +114,12 @@ export const gameConfig = {
     poolSize: 3,
   },
   obstacleSprite: {
-    capImagePath: "assets/sprites/obstacles/obstacle-cap.png",
-    bodyImagePath: "assets/sprites/obstacles/obstacle-body.png",
-    baseImagePath: "assets/sprites/obstacles/obstacle-base.png",
-    damagedCapImagePath: "assets/sprites/obstacles/obstacle-cap-damaged.png",
-    capSourceSize: {
-      width: 96,
-      height: 48,
-    },
-    bodySourceSize: {
+    imagePath: "assets/sprites/obstacles/obstacle-body.png",
+    sourceSize: {
       width: 64,
       height: 64,
     },
-    baseSourceSize: {
-      width: 96,
-      height: 48,
-    },
-    capDrawSize: {
-      width: 80,
-      height: 40,
-    },
-    baseDrawSize: {
-      width: 80,
-      height: 40,
-    },
-    bodyTileHeight: 64,
-    connectionOverlap: 2,
-    damagedCapInterval: 4,
+    tileHeight: 64,
   },
   terrain: {
     seed: 680,
@@ -204,18 +174,9 @@ export function validateGameConfig(config: GameConfig): void {
     config.obstacles.scrollSpeed,
     config.obstacles.horizontalSpacing,
     config.obstacles.poolSize,
-    config.obstacleSprite.capSourceSize.width,
-    config.obstacleSprite.capSourceSize.height,
-    config.obstacleSprite.bodySourceSize.width,
-    config.obstacleSprite.bodySourceSize.height,
-    config.obstacleSprite.baseSourceSize.width,
-    config.obstacleSprite.baseSourceSize.height,
-    config.obstacleSprite.capDrawSize.width,
-    config.obstacleSprite.capDrawSize.height,
-    config.obstacleSprite.baseDrawSize.width,
-    config.obstacleSprite.baseDrawSize.height,
-    config.obstacleSprite.bodyTileHeight,
-    config.obstacleSprite.damagedCapInterval,
+    config.obstacleSprite.sourceSize.width,
+    config.obstacleSprite.sourceSize.height,
+    config.obstacleSprite.tileHeight,
     config.terrain.noiseFrequency,
     config.terrain.maximumSlope,
     config.terrain.slopeSmoothingDistance,
@@ -270,33 +231,18 @@ export function validateGameConfig(config: GameConfig): void {
     throw new Error("Player sprite frame configuration is invalid.");
   }
 
-  const obstacleSpritePaths = [
-    config.obstacleSprite.capImagePath,
-    config.obstacleSprite.bodyImagePath,
-    config.obstacleSprite.baseImagePath,
-    config.obstacleSprite.damagedCapImagePath,
-  ];
-
   if (
-    obstacleSpritePaths.some(
-      (path) => path.startsWith("/") || path.length === 0,
-    )
+    config.obstacleSprite.imagePath.startsWith("/") ||
+    config.obstacleSprite.imagePath.length === 0
   ) {
     throw new Error(
-      "Obstacle sprite paths must be relative to the deployment base.",
+      "The obstacle sprite path must be relative to the deployment base.",
     );
   }
 
   if (
-    !Number.isInteger(config.obstacleSprite.damagedCapInterval) ||
-    config.obstacleSprite.connectionOverlap < 0 ||
-    config.obstacleSprite.connectionOverlap >=
-      Math.min(
-        config.obstacleSprite.capDrawSize.height,
-        config.obstacleSprite.baseDrawSize.height,
-      ) ||
-    config.obstacleSprite.capDrawSize.width < config.obstacles.width ||
-    config.obstacleSprite.baseDrawSize.width < config.obstacles.width
+    config.obstacleSprite.sourceSize.width !== config.obstacles.width ||
+    config.obstacleSprite.tileHeight !== config.obstacleSprite.sourceSize.height
   ) {
     throw new Error("Obstacle sprite geometry is invalid.");
   }
@@ -345,19 +291,6 @@ export function validateGameConfig(config: GameConfig): void {
   ) {
     throw new Error(
       "Terrain-aligned obstacle gaps must preserve safe clearances.",
-    );
-  }
-
-  const visiblePostLength =
-    terrain.passageHalfHeight - config.obstacles.gapHeight / 2;
-  const terminatedPostLength =
-    config.obstacleSprite.capDrawSize.height +
-    config.obstacleSprite.baseDrawSize.height -
-    config.obstacleSprite.connectionOverlap * 2;
-
-  if (visiblePostLength < terminatedPostLength) {
-    throw new Error(
-      "Obstacle sprite cap and base do not fit between the gap and terrain.",
     );
   }
 

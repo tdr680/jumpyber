@@ -38,27 +38,13 @@ describe("gameConfig", () => {
     expect(gameConfig.playerSprite.frameCount).toBe(6);
   });
 
-  it("uses deployment-relative normalized obstacle components", () => {
-    const paths = [
-      gameConfig.obstacleSprite.capImagePath,
-      gameConfig.obstacleSprite.bodyImagePath,
-      gameConfig.obstacleSprite.baseImagePath,
-      gameConfig.obstacleSprite.damagedCapImagePath,
-    ];
-
-    expect(paths.every((path) => !path.startsWith("/"))).toBe(true);
-    expect(gameConfig.obstacleSprite.capSourceSize).toEqual({
-      width: 96,
-      height: 48,
-    });
-    expect(gameConfig.obstacleSprite.bodySourceSize).toEqual({
+  it("uses one deployment-relative normalized obstacle body tile", () => {
+    expect(gameConfig.obstacleSprite.imagePath.startsWith("/")).toBe(false);
+    expect(gameConfig.obstacleSprite.sourceSize).toEqual({
       width: 64,
       height: 64,
     });
-    expect(gameConfig.obstacleSprite.baseSourceSize).toEqual({
-      width: 96,
-      height: 48,
-    });
+    expect(gameConfig.obstacleSprite.tileHeight).toBe(64);
   });
 
   it("rejects terrain-aligned gaps outside safe clearances", () => {

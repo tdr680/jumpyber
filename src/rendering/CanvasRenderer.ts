@@ -7,26 +7,12 @@ import {
   getPlayerSpriteFrameIndex,
   selectPlayerSpriteFrame,
 } from "./PlayerSprite";
-import {
-  createObstacleSpriteAssembly,
-  type ObstacleSpritePost,
-  type ObstacleSpriteSection,
-  usesDamagedObstacleCap,
-} from "./ObstacleSprite";
-
-interface ObstacleSpriteImages {
-  readonly cap: HTMLImageElement;
-  readonly body: HTMLImageElement;
-  readonly base: HTMLImageElement;
-  readonly damagedCap: HTMLImageElement;
-}
 
 export class CanvasRenderer {
   private readonly context: CanvasRenderingContext2D;
   private readonly viewport: Viewport;
   private readonly playerSpriteImage: HTMLImageElement;
-  private readonly obstacleSpriteImages: ObstacleSpriteImages;
-  private obstacleSpriteLoadFailed = false;
+  private readonly obstacleSpriteImage: HTMLImageElement;
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -54,14 +40,17 @@ export class CanvasRenderer {
     });
     this.playerSpriteImage.src = `${import.meta.env.BASE_URL}${config.playerSprite.imagePath}`;
 
-    this.obstacleSpriteImages = {
-      cap: new Image(),
-      body: new Image(),
-      base: new Image(),
-      damagedCap: new Image(),
-    };
+    this.obstacleSpriteImage = new Image();
     this.canvas.dataset.obstacleSprites = "loading";
-    this.loadObstacleSprites();
+    this.obstacleSpriteImage.addEventListener("load", () => {
+      this.canvas.dataset.obstacleSprites = this.obstacleSpriteReady()
+        ? "loaded"
+        : "fallback";
+    });
+    this.obstacleSpriteImage.addEventListener("error", () => {
+      this.canvas.dataset.obstacleSprites = "fallback";
+    });
+    this.obstacleSpriteImage.src = `${import.meta.env.BASE_URL}${config.obstacleSprite.imagePath}`;
   }
 
   public render(snapshot: GameSnapshot): void {
@@ -84,7 +73,7 @@ export class CanvasRenderer {
     this.drawTerrain(snapshot);
 
     for (const obstacle of snapshot.obstacles) {
-      this.drawObstaclePair(obstacle, snapshot);
+      this.drawObstaclePair(obstacle, snapshot.worldDistance);
     }
     this.drawPlayer(snapshot);
 
@@ -175,43 +164,17 @@ export class CanvasRenderer {
 
   private drawObstaclePair(
     obstacle: Readonly<ObstaclePair>,
-    snapshot: GameSnapshot,
+    worldDistance: number,
   ): void {
     const rectangles = getObstacleRectangles(
       obstacle,
-      snapshot.worldDistance,
+      worldDistance,
       this.config.world.height,
     );
-    const terrainSample = snapshot.terrain.sampleAt(
-      obstacle.worldX + obstacle.width / 2,
-    );
 
-    if (this.obstacleSpritesReady()) {
-      const assembly = createObstacleSpriteAssembly(
-        rectangles,
-        obstacle.terrainHeight,
-        terrainSample.slope,
-        this.config.terrain.passageHalfHeight,
-        this.config.obstacleSprite,
-      );
-      const capImage = usesDamagedObstacleCap(
-        obstacle.worldX,
-        this.config.obstacles.horizontalSpacing,
-        this.config.obstacleSprite.damagedCapInterval,
-      )
-        ? this.obstacleSpriteImages.damagedCap
-        : this.obstacleSpriteImages.cap;
-
-      this.drawObstacleSpritePost(
-        assembly.upper,
-        capImage,
-        assembly.terrainAngleRadians,
-      );
-      this.drawObstacleSpritePost(
-        assembly.lower,
-        capImage,
-        assembly.terrainAngleRadians,
-      );
+    if (this.obstacleSpriteReady()) {
+      this.drawObstacleBodyTiles(rectangles.top);
+      this.drawObstacleBodyTiles(rectangles.bottom);
       return;
     }
 
@@ -219,66 +182,12 @@ export class CanvasRenderer {
     this.drawObstacleRectangle(rectangles.bottom, "top");
   }
 
-  private loadObstacleSprites(): void {
-    const { obstacleSprite } = this.config;
-    const sources: ReadonlyArray<readonly [HTMLImageElement, string]> = [
-      [this.obstacleSpriteImages.cap, obstacleSprite.capImagePath],
-      [this.obstacleSpriteImages.body, obstacleSprite.bodyImagePath],
-      [this.obstacleSpriteImages.base, obstacleSprite.baseImagePath],
-      [
-        this.obstacleSpriteImages.damagedCap,
-        obstacleSprite.damagedCapImagePath,
-      ],
-    ];
-
-    for (const [image, path] of sources) {
-      image.addEventListener("load", () => {
-        if (this.obstacleSpritesReady()) {
-          this.canvas.dataset.obstacleSprites = "loaded";
-        }
-      });
-      image.addEventListener("error", () => {
-        this.obstacleSpriteLoadFailed = true;
-        this.canvas.dataset.obstacleSprites = "fallback";
-      });
-      image.src = `${import.meta.env.BASE_URL}${path}`;
-    }
-  }
-
-  private obstacleSpritesReady(): boolean {
-    if (this.obstacleSpriteLoadFailed) {
-      return false;
-    }
-
-    const { obstacleSprite } = this.config;
-    const requirements: ReadonlyArray<
-      readonly [HTMLImageElement, Readonly<{ width: number; height: number }>]
-    > = [
-      [this.obstacleSpriteImages.cap, obstacleSprite.capSourceSize],
-      [this.obstacleSpriteImages.body, obstacleSprite.bodySourceSize],
-      [this.obstacleSpriteImages.base, obstacleSprite.baseSourceSize],
-      [this.obstacleSpriteImages.damagedCap, obstacleSprite.capSourceSize],
-    ];
-
-    return requirements.every(
-      ([image, size]) =>
-        image.complete &&
-        image.naturalWidth === size.width &&
-        image.naturalHeight === size.height,
-    );
-  }
-
-  private drawObstacleSpritePost(
-    post: Readonly<ObstacleSpritePost>,
-    capImage: CanvasImageSource,
-    terrainAngleRadians: number,
-  ): void {
-    this.drawObstacleBodyTiles(post.body);
-    this.drawObstacleSpriteSection(capImage, post.cap, 0);
-    this.drawObstacleSpriteSection(
-      this.obstacleSpriteImages.base,
-      post.base,
-      terrainAngleRadians,
+  private obstacleSpriteReady(): boolean {
+    const { sourceSize } = this.config.obstacleSprite;
+    return (
+      this.obstacleSpriteImage.complete &&
+      this.obstacleSpriteImage.naturalWidth === sourceSize.width &&
+      this.obstacleSpriteImage.naturalHeight === sourceSize.height
     );
   }
 
@@ -290,19 +199,18 @@ export class CanvasRenderer {
       height: number;
     }>,
   ): void {
-    const { bodySourceSize, bodyTileHeight } = this.config.obstacleSprite;
+    const { sourceSize, tileHeight } = this.config.obstacleSprite;
     let destinationY = rectangle.y;
     let remainingHeight = rectangle.height;
 
     while (remainingHeight > 0) {
-      const destinationHeight = Math.min(bodyTileHeight, remainingHeight);
-      const sourceHeight =
-        (destinationHeight / bodyTileHeight) * bodySourceSize.height;
+      const destinationHeight = Math.min(tileHeight, remainingHeight);
+      const sourceHeight = (destinationHeight / tileHeight) * sourceSize.height;
       this.context.drawImage(
-        this.obstacleSpriteImages.body,
+        this.obstacleSpriteImage,
         0,
         0,
-        bodySourceSize.width,
+        sourceSize.width,
         sourceHeight,
         rectangle.x,
         destinationY,
@@ -312,31 +220,6 @@ export class CanvasRenderer {
       destinationY += destinationHeight;
       remainingHeight -= destinationHeight;
     }
-  }
-
-  private drawObstacleSpriteSection(
-    image: CanvasImageSource,
-    section: Readonly<ObstacleSpriteSection>,
-    rotationRadians: number,
-  ): void {
-    const { rectangle, flipVertically } = section;
-    const context = this.context;
-
-    context.save();
-    context.translate(
-      rectangle.x + rectangle.width / 2,
-      rectangle.y + rectangle.height / 2,
-    );
-    context.rotate(rotationRadians);
-    context.scale(1, flipVertically ? -1 : 1);
-    context.drawImage(
-      image,
-      -rectangle.width / 2,
-      -rectangle.height / 2,
-      rectangle.width,
-      rectangle.height,
-    );
-    context.restore();
   }
 
   private drawObstacleRectangle(

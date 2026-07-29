@@ -87,35 +87,23 @@ For the MVP:
 - Add small decorative caps or highlights only if they do not confuse the hit area.
 - Keep gap boundaries visually precise.
 
-### First modular obstacle sprites
+### First obstacle body sprite
 
-The first generated obstacle set is stored under
-`public/assets/sprites/obstacles/`:
+The obstacle set contains one asset:
+`public/assets/sprites/obstacles/obstacle-body.png`, a 64×64 vertically
+seamless transparent body tile.
 
-- `obstacle-cap.png` — 96×48 gap-facing cap.
-- `obstacle-body.png` — 64×64 vertically seamless body tile.
-- `obstacle-base.png` — 96×48 neutral terrain footing.
-- `obstacle-cap-damaged.png` — 96×48 restrained wear variation with the same
-  silhouette as the normal cap.
-
-The assets use dark charcoal fill, bold black hand-drawn outlines, minimal
-internal wear, neutral lighting, and transparent backgrounds. Upper posts
-reuse vertically mirrored caps and bases. The body repeats at its native
-proportions; its first and last rows are normalized to match exactly.
-
-At runtime the 64-unit collision rectangle remains authoritative. Caps and
-bases render 80 logical units wide with a restrained 8-unit decorative
-overhang on either side. Footings rotate only to follow the shared terrain
-slope and overlap their body connections slightly, while collision remains the
-existing axis-aligned obstacle rectangle. Body tiles continue through the full
-top or bottom rectangle, while the footing marks the terrain crossing. This
-preserves the varying post heights and vertically moving fixed-size gap from
-the pre-sprite renderer. If any component fails to load, the original Canvas
-obstacle drawing is used for the entire set.
+It uses a dark charcoal fill, bold black hand-drawn outline, and minimal
+internal wear. Its first and last rows match exactly. The renderer repeats it
+at native proportions through each complete 64-unit-wide collision rectangle;
+there are no cap, base, damaged, mirrored, rotated, or terrain-specific pieces.
+This keeps the sprite silhouette identical to the pre-sprite rectangular
+obstacles while terrain still controls their height and gap position. If the
+tile fails to load, the original Canvas obstacle drawing is used.
 
 The reusable prompt and selection notes live in
 `.prompts/obstacle-sprites.md`. Deterministic extraction, normalization, seam
-correction, and preview generation live in
+correction, and full-rectangle preview generation live in
 `scripts/assets/process_obstacle_sprites.py`.
 
 ## Background

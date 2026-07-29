@@ -140,33 +140,28 @@ normalization script are versioned together. The visual frame rectangle and
 decorative limbs do not change the explicit player collision radius. Browser
 tests must confirm the sheet loads in root and Pages-path production previews.
 
-## ADR-011 — Modular obstacle sprites derive from shared gameplay geometry
+## ADR-011 — One obstacle body tile fills shared gameplay geometry
 
 **Status:** Accepted
 
-**Decision:** Render obstacles from a transparent gap cap, vertically repeated
-body tile, terrain footing, and silhouette-compatible damaged cap. Derive every
-component placement from the existing obstacle collision rectangles and stored
-terrain height. Repeat the body across the complete top or bottom collision
-rectangle, overlay the footing at the terrain boundary, use the sampled terrain
-slope only to rotate that footing, mirror cap and base assets for upper posts,
-and retain the original Canvas rectangles as an all-components load fallback.
+**Decision:** Render both obstacle rectangles with one vertically seamless
+64×64 transparent body tile. Repeat the tile directly through the complete
+rectangles returned by `getObstacleRectangles`, and retain the original Canvas
+rectangles as the image-load fallback. Do not construct caps, bases, damaged
+variations, mirrored pieces, or terrain-specific visual attachments.
 
-**Reasoning:** Modular pieces keep short and tall posts readable without
-stretching generated detail. Reusing authoritative geometry prevents art from
-drifting away from collision as terrain ascends or descends. Neutral lighting
-makes vertical mirroring coherent, and a complete-set fallback avoids
-partially rendered hazards. Filling the full authoritative rectangles preserves
-the varying post heights and terrain-following gap positions that existed
-before sprite integration.
+**Reasoning:** The multi-piece assembly added presentation geometry that made
+it harder to preserve the simple pre-sprite obstacle silhouette. One tile maps
+directly to the authoritative rectangles, keeps varying heights and
+terrain-following gap positions obvious, and removes unnecessary asset-loading
+and assembly code.
 
-**Consequences:** Runtime dimensions, asset paths, overlap, and visual-variation
-interval are typed configuration. Cap and base overhang is decorative and does
-not expand the explicit 64-unit collision width. The generated source prompt,
-deterministic normalization script, seam correction, and transparent runtime
-PNGs are versioned together. The fixed-size gap remains centred directly on the
-shared terrain sample; no separate obstacle-height randomness is introduced.
-Browser tests verify deployment-relative loading.
+**Consequences:** Typed configuration contains one deployment-relative image
+path, one 64×64 source size, and one tile height. The generated source prompt,
+deterministic crop and seam correction, and transparent body PNG are versioned
+together. Browser tests verify deployment-relative loading. The fixed-size gap
+remains centred directly on the shared terrain sample; no separate
+obstacle-height randomness is introduced.
 
 ## ADR template
 

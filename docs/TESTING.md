@@ -31,12 +31,9 @@ Prioritize pure logic.
   position.
 - Terrain-aligned gaps remain inside safe bounds on long ascending and
   descending sections.
-- Modular cap/body/base assembly terminates at the same gap and terrain
-  boundaries as the authoritative obstacle rectangles.
-- Modular body tiles cover the complete varying top and bottom collision
+- The single body tile covers the complete varying top and bottom collision
   rectangles used before sprite integration.
-- The repeatable body has matching top and bottom pixel rows, and the damaged
-  cap selection does not alter geometry.
+- The repeatable body has matching top and bottom pixel rows.
 
 ### Procedural terrain
 
