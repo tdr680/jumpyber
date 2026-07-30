@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw
 FRAME_NAMES = ("ready", "jump", "rise", "apex", "fall", "hit")
 FRAME_SIZE = 96
 ANCHOR = (48, 48)
+MINIMUM_COMPONENT_PIXELS = 64
 
 
 def parse_args() -> argparse.Namespace:
@@ -44,6 +45,58 @@ def checkerboard(size: tuple[int, int], tile_size: int = 8) -> Image.Image:
                     fill=(204, 204, 204, 255),
                 )
     return preview
+
+
+def alpha_components(image: Image.Image) -> list[list[tuple[int, int]]]:
+    visible = {
+        (x, y)
+        for y in range(image.height)
+        for x in range(image.width)
+        if image.getpixel((x, y))[3] > 0
+    }
+    components: list[list[tuple[int, int]]] = []
+
+    while visible:
+        seed = visible.pop()
+        component = [seed]
+        pending = [seed]
+
+        while pending:
+            x, y = pending.pop()
+            for neighbor_x in range(max(0, x - 1), min(image.width, x + 2)):
+                for neighbor_y in range(
+                    max(0, y - 1),
+                    min(image.height, y + 2),
+                ):
+                    neighbor = (neighbor_x, neighbor_y)
+                    if neighbor in visible:
+                        visible.remove(neighbor)
+                        component.append(neighbor)
+                        pending.append(neighbor)
+
+        components.append(component)
+
+    return components
+
+
+def retain_largest_alpha_component(image: Image.Image) -> None:
+    components = alpha_components(image)
+    if not components:
+        raise ValueError("A source cell contains no visible sprite pixels.")
+
+    largest = max(components, key=len)
+    for component in components:
+        if component is largest:
+            continue
+        for point in component:
+            image.putpixel(point, (0, 0, 0, 0))
+
+
+def remove_small_alpha_components(image: Image.Image) -> None:
+    for component in alpha_components(image):
+        if len(component) < MINIMUM_COMPONENT_PIXELS:
+            for point in component:
+                image.putpixel(point, (0, 0, 0, 0))
 
 
 def write_preview(sheet: Image.Image, output: Path) -> None:
@@ -98,6 +151,9 @@ def main() -> None:
         )
         for index in range(len(FRAME_NAMES))
     ]
+    for cell in cells:
+        retain_largest_alpha_component(cell)
+
     bounds = [alpha_bounds(cell) for cell in cells]
     maximum_width = max(right - left for left, _, right, _ in bounds)
     maximum_height = max(bottom - top for _, top, _, bottom in bounds)
@@ -128,6 +184,7 @@ def main() -> None:
             ANCHOR[1] - resized.height // 2,
         )
         frame.alpha_composite(resized, destination)
+        remove_small_alpha_components(frame)
         sheet.alpha_composite(frame, (index * FRAME_SIZE, 0))
         frame_metadata[name] = {
             "rect": {

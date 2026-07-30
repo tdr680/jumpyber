@@ -85,6 +85,7 @@ GameOver, and deterministic restart.
 ## Player sprite asset
 
 - [x] Generate one consistent six-pose stick-figure source sheet with ImageGen.
+- [x] Regenerate the six poses with the shared old-school dark-fantasy ink style.
 - [x] Remove the chroma background and preserve transparent antialiased edges.
 - [x] Normalize six 96×96 frames with one scale and shared centre anchor.
 - [x] Export player sheet metadata and preserve the reusable generation prompt.
@@ -99,9 +100,16 @@ development-server tests, seven root production-preview tests, seven
 GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
 production builds, normalized-sheet inspection, and runtime visual review.
 
+The shared-style regeneration was verified on 2026-07-30 with deterministic
+normalization, alpha-component and shared-anchor inspection, 68 unit tests,
+seven Chromium development-server tests, seven root production-preview tests,
+seven GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
+production builds, and final Ready/Playing runtime captures.
+
 ## Obstacle body sprite asset
 
 - [x] Keep one transparent 64×64 repeatable obstacle body tile.
+- [x] Regenerate the body as a shared-style ironbound ruin-pillar midsection.
 - [x] Remove the cap, base, and damaged-cap assets.
 - [x] Remove multi-piece assembly, mirroring, rotation, and variation code.
 - [x] Tile the body directly through shared top and bottom collision rectangles.
@@ -116,6 +124,51 @@ seven Chromium development-server tests, seven root production-preview tests,
 seven GitHub-Pages-path production-preview tests, TypeScript, lint, formatting,
 production builds, deterministic asset reproduction, seam validation, and live
 inspection across multiple terrain positions.
+
+The shared-style ruin-pillar regeneration was verified on 2026-07-30 with
+deterministic crop reproduction, exact first/last-row matching, full collision
+width occupancy, and the same development, root-preview, and Pages-preview
+checks used for the player sheet.
+
+## Shadowdark-inspired style exploration
+
+- [x] Generate four fixed-composition studies containing a player, upper and lower obstacles, and terrain.
+- [x] Vary line roughness, shading amount, palette darkness, and texture amount.
+- [x] Remove chroma backgrounds and export transparent 512×512 studies.
+- [x] Compare each study at reduced scale on light and dark backgrounds.
+- [x] Select and document the balanced two-tone direction for future sprites.
+- [x] Apply the balanced two-tone direction to the runtime player and obstacle sprites.
+- [x] Keep exploration files separate from runtime assets and gameplay code.
+
+Style exploration verified on 2026-07-30 with alpha and chroma-fringe checks,
+light/dark reduced-scale comparison, deterministic 512×512 normalization,
+formatting, lint, 68 unit tests, and a production build.
+
+Study 3 runtime adoption verified on 2026-07-30 with deterministic player and
+obstacle reproduction, shared-anchor and seam inspection, 68 unit tests, seven
+development-server browser tests, seven root-preview browser tests, seven
+GitHub-Pages-path browser tests, formatting, lint, root and Pages production
+builds, and final Ready/Playing visual captures.
+
+## Sprite background and parallax preparation
+
+- [x] Generate three modular transparent background strips in the selected balanced two-tone style.
+- [x] Normalize far mist, far skyline, and midground ruins into repeatable runtime assets.
+- [x] Preserve reusable prompts, selected-generation notes, and deterministic processing tooling.
+- [x] Centralize ordered parallax layer paths, dimensions, offsets, speed factors, repeat modes, and opacity.
+- [x] Add a reusable presentation-only parallax renderer with deployment-relative asset loading.
+- [x] Replace the two Canvas placeholder clouds while retaining the sky gradient fallback.
+- [x] Render at least three layers at distinct world-scroll speeds behind gameplay terrain.
+- [x] Add unit tests for motion-source selection, deterministic offsets, wrapping, and viewport coverage.
+- [x] Verify background loading and unchanged gameplay in the existing browser suite.
+- [x] Document background art direction, renderer boundaries, and fallback behavior.
+
+Background and parallax preparation verified on 2026-07-30 with deterministic
+asset normalization, exact matching horizontal edge columns, runtime visual
+inspection in Ready and Playing states, 73 unit tests, seven Chromium
+development-server tests, seven root production-preview tests, seven
+GitHub-Pages-path production-preview tests, formatting, lint, TypeScript, and
+root and project-path production builds.
 
 ## Milestone 2 — Feel and usability
 
@@ -134,7 +187,7 @@ inspection across multiple terrain positions.
 
 - [ ] Choose an original theme for player, obstacles, and environment.
 - [ ] Replace temporary shapes only where final art improves the game.
-- [ ] Add restrained parallax background layers.
+- [x] Add restrained parallax background layers.
 - [ ] Improve start and game-over UI.
 - [ ] Add an application icon and metadata.
 - [ ] Confirm no visual asset resembles copyrighted Flappy Bird artwork.

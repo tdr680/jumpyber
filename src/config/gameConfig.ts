@@ -1,5 +1,21 @@
 import type { Size } from "../core/types";
 
+export type ParallaxRepeatMode = "none" | "repeat-x";
+export type ParallaxMotionSource = "world" | "camera";
+
+export interface ParallaxLayerConfig {
+  readonly id: string;
+  readonly imagePath: string;
+  readonly sourceSize: Size;
+  readonly drawSize: Size;
+  readonly scrollFactor: number;
+  readonly verticalOffset: number;
+  readonly repeatMode: ParallaxRepeatMode;
+  readonly spacing: number;
+  readonly opacity: number;
+  readonly motionSource: ParallaxMotionSource;
+}
+
 export interface GameConfig {
   readonly world: Size;
   readonly loop: {
@@ -8,6 +24,10 @@ export interface GameConfig {
   };
   readonly viewport: {
     readonly maxDevicePixelRatio: number;
+  };
+  readonly background: {
+    /** Layers render in array order, from farthest to nearest. */
+    readonly layers: readonly ParallaxLayerConfig[];
   };
   readonly player: {
     readonly x: number;
@@ -87,6 +107,64 @@ export const gameConfig = {
   viewport: {
     maxDevicePixelRatio: 3,
   },
+  background: {
+    layers: [
+      {
+        id: "far-mist",
+        imagePath: "assets/sprites/background/far-mist.png",
+        sourceSize: {
+          width: 768,
+          height: 128,
+        },
+        drawSize: {
+          width: 768,
+          height: 128,
+        },
+        scrollFactor: 0.025,
+        verticalOffset: 72,
+        repeatMode: "repeat-x",
+        spacing: 0,
+        opacity: 0.2,
+        motionSource: "world",
+      },
+      {
+        id: "far-skyline",
+        imagePath: "assets/sprites/background/far-skyline.png",
+        sourceSize: {
+          width: 768,
+          height: 128,
+        },
+        drawSize: {
+          width: 768,
+          height: 128,
+        },
+        scrollFactor: 0.07,
+        verticalOffset: 228,
+        repeatMode: "repeat-x",
+        spacing: 0,
+        opacity: 0.18,
+        motionSource: "world",
+      },
+      {
+        id: "midground-ruins",
+        imagePath: "assets/sprites/background/midground-ruins.png",
+        sourceSize: {
+          width: 768,
+          height: 144,
+        },
+        drawSize: {
+          width: 768,
+          height: 144,
+        },
+        scrollFactor: 0.15,
+        verticalOffset: 342,
+        repeatMode: "repeat-x",
+        spacing: 0,
+        opacity: 0.22,
+        motionSource: "world",
+      },
+    ],
+  },
   player: {
     x: 110,
     startY: 300,
@@ -162,6 +240,12 @@ export function validateGameConfig(config: GameConfig): void {
     config.loop.fixedStepSeconds,
     config.loop.maxFrameDeltaSeconds,
     config.viewport.maxDevicePixelRatio,
+    ...config.background.layers.flatMap((layer) => [
+      layer.sourceSize.width,
+      layer.sourceSize.height,
+      layer.drawSize.width,
+      layer.drawSize.height,
+    ]),
     config.player.radius,
     config.player.gravity,
     config.player.maxFallVelocity,
@@ -193,6 +277,35 @@ export function validateGameConfig(config: GameConfig): void {
     throw new Error(
       "Game configuration values that represent sizes must be positive.",
     );
+  }
+
+  const layerIds = new Set<string>();
+  for (const layer of config.background.layers) {
+    if (
+      layer.id.length === 0 ||
+      layerIds.has(layer.id) ||
+      layer.imagePath.length === 0 ||
+      layer.imagePath.startsWith("/")
+    ) {
+      throw new Error(
+        "Background layers need unique IDs and deployment-relative paths.",
+      );
+    }
+
+    if (
+      !Number.isFinite(layer.scrollFactor) ||
+      layer.scrollFactor < 0 ||
+      !Number.isFinite(layer.verticalOffset) ||
+      !Number.isFinite(layer.spacing) ||
+      layer.spacing < 0 ||
+      !Number.isFinite(layer.opacity) ||
+      layer.opacity <= 0 ||
+      layer.opacity > 1
+    ) {
+      throw new Error("Background parallax layer configuration is invalid.");
+    }
+
+    layerIds.add(layer.id);
   }
 
   const requiredHeight =

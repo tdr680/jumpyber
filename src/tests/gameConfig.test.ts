@@ -47,6 +47,29 @@ describe("gameConfig", () => {
     expect(gameConfig.obstacleSprite.tileHeight).toBe(64);
   });
 
+  it("uses three ordered deployment-relative parallax sprite layers", () => {
+    expect(gameConfig.background.layers).toHaveLength(3);
+    expect(
+      gameConfig.background.layers.map((layer) => layer.imagePath),
+    ).toEqual([
+      "assets/sprites/background/far-mist.png",
+      "assets/sprites/background/far-skyline.png",
+      "assets/sprites/background/midground-ruins.png",
+    ]);
+    expect(
+      gameConfig.background.layers.every(
+        (layer) =>
+          !layer.imagePath.startsWith("/") &&
+          layer.repeatMode === "repeat-x" &&
+          layer.spacing === 0,
+      ),
+    ).toBe(true);
+    expect(
+      new Set(gameConfig.background.layers.map((layer) => layer.scrollFactor))
+        .size,
+    ).toBe(3);
+  });
+
   it("rejects terrain-aligned gaps outside safe clearances", () => {
     const invalidConfig = {
       ...gameConfig,

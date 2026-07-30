@@ -9,7 +9,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 BODY_SIZE = (64, 64)
-BODY_SOURCE_CROP = (588, 334, 790, 548)
+SOURCE_SIZE = (887, 1774)
+BODY_SOURCE_CROP = (259, 912, 627, 1280)
 RESAMPLING = Image.Resampling.LANCZOS
 
 
@@ -133,9 +134,10 @@ def main() -> None:
     args = parser.parse_args()
 
     source = Image.open(args.source).convert("RGBA")
-    if source.size != (1774, 887):
+    if source.size != SOURCE_SIZE:
         raise ValueError(
-            f"Expected the selected 1774x887 source, got {source.size}.",
+            f"Expected the selected {SOURCE_SIZE[0]}x{SOURCE_SIZE[1]} source, "
+            f"got {source.size}.",
         )
 
     body = make_seamless_body(source.crop(BODY_SOURCE_CROP))

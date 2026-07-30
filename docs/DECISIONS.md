@@ -163,6 +163,91 @@ together. Browser tests verify deployment-relative loading. The fixed-size gap
 remains centred directly on the shared terrain sample; no separate
 obstacle-height randomness is introduced.
 
+## ADR-012 — Shared old-school dark-fantasy ink treatment for gameplay sprites
+
+**Status:** Accepted
+
+**Decision:** Apply the visual rules in `.prompts/style-shadowdark.md` to the
+generated player and obstacle assets as an original old-school dark-fantasy
+tabletop ink treatment. Use strong rough outlines, compact silhouettes,
+minimal one- or two-step shading, restrained printed-book texture, and a muted
+charcoal, iron-grey, umber, and parchment-grey palette.
+
+Preserve the existing runtime contracts while applying that treatment: the
+player remains six centred 96×96 frames with one `(48, 48)` anchor, and
+obstacles remain one seamless 64×64 body tile filling the authoritative
+collision rectangles. Decorative detail stays inside those silhouettes and
+does not change simulation, collision, terrain projection, or asset paths.
+
+**Reasoning:** One shared treatment makes separately generated assets feel
+coherent while keeping them readable over the current light background at
+small size. Explicit silhouette and detail limits prevent the richer dungeon
+theme from weakening gameplay clarity.
+
+**Consequences:** Reusable generation prompts inherit the shared style brief
+and retain asset-specific layout, chroma, and normalization constraints.
+Generated sources are chroma-keyed and normalized deterministically. The Canvas
+fallbacks remain intentionally simpler and continue to protect runtime
+availability; changing the rest of the background or interface theme is
+outside this asset refresh.
+
+## ADR-013 — Balanced two-tone is the small-sprite reference treatment
+
+**Status:** Accepted
+
+**Decision:** Use style exploration 3, the balanced two-tone study in
+`art/style-explorations/`, as the reference for future small gameplay sprites.
+It combines medium controlled line roughness, continuous near-black
+silhouettes, two hard-edged value steps, medium charcoal fills, muted
+parchment-grey accents, and sparse grouped texture.
+
+**Reasoning:** The four studies were reduced to 240×240 complete-vignette
+thumbnails and compared on both light and dark backgrounds. Study 3 preserved
+the player pose, obstacle gap, masonry blocks, and terrain contour most
+consistently. Cleaner treatment lost some separation on dark fields, rougher
+lines became busy, and the darkest textured treatment merged at small scale.
+
+**Consequences:** Future generation prompts should treat texture as an interior
+accent and keep gameplay edges quiet. The selected study is a visual reference,
+and its treatment is now applied to the runtime player sheet and obstacle body.
+The adoption changes only raster presentation; it does not change rendering
+contracts, anchors, collision, or terrain geometry.
+
+## ADR-014 — Modular sprite strips use a presentation-only parallax renderer
+
+**Status:** Accepted
+
+**Decision:** Build the background from three transparent, horizontally
+repeatable sprite strips rather than one viewport-sized illustration. Define
+their path, source and draw size, scroll factor, vertical offset, repeat mode,
+spacing, opacity, and world/camera motion source in ordered typed
+configuration. Render them through a dedicated parallax module after the
+Canvas sky gradient and before all authoritative gameplay geometry.
+
+Use `worldDistance` as the initial layers' only travel source. Keep the
+gradient as a permanent base and fallback, and skip any missing or
+dimensionally invalid sprite without interrupting the render loop.
+
+**Reasoning:** Modular strips support screens and run lengths beyond one fixed
+composition, while three modestly different world-scroll factors communicate
+depth with little runtime work. Pure wrap calculations are deterministic and
+unit-testable. Loading each image once and drawing only the copies needed to
+cover the viewport keeps the system lightweight.
+
+Keeping decorative art behind a stable fallback avoids turning a presentation
+failure into a broken game. Separating it from the terrain profile also
+prevents background silhouettes from becoming accidental collision or
+obstacle-placement inputs.
+
+**Consequences:** Background assets require transparent extraction,
+deployment-relative paths, known dimensions, and horizontally compatible
+edges. The generated strips and their deterministic seam-normalization script
+are versioned with a reusable prompt. Layer opacity and vertical placement are
+visual tuning values; changing them does not alter simulation, restart,
+scoring, terrain, or collision. A future camera can provide decorative travel
+through the existing motion-source field without changing the current
+fixed-camera simulation.
+
 ## ADR template
 
 Copy this section for future decisions:

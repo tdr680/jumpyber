@@ -7,10 +7,12 @@ import {
   getPlayerSpriteFrameIndex,
   selectPlayerSpriteFrame,
 } from "./PlayerSprite";
+import { ParallaxBackground } from "./ParallaxBackground";
 
 export class CanvasRenderer {
   private readonly context: CanvasRenderingContext2D;
   private readonly viewport: Viewport;
+  private readonly parallaxBackground: ParallaxBackground;
   private readonly playerSpriteImage: HTMLImageElement;
   private readonly obstacleSpriteImage: HTMLImageElement;
 
@@ -29,6 +31,13 @@ export class CanvasRenderer {
       canvas,
       config.world,
       config.viewport.maxDevicePixelRatio,
+    );
+    this.parallaxBackground = new ParallaxBackground(
+      config.background.layers,
+      import.meta.env.BASE_URL,
+      (status) => {
+        this.canvas.dataset.backgroundSprites = status;
+      },
     );
     this.playerSpriteImage = new Image();
     this.canvas.dataset.playerSprite = "loading";
@@ -67,8 +76,7 @@ export class CanvasRenderer {
     context.fillStyle = sky;
     context.fillRect(0, 0, width, height);
 
-    this.drawCloud(76, 94, 0.9);
-    this.drawCloud(315, 154, 0.65);
+    this.parallaxBackground.render(context, width, snapshot.worldDistance);
 
     this.drawTerrain(snapshot);
 
@@ -78,21 +86,6 @@ export class CanvasRenderer {
     this.drawPlayer(snapshot);
 
     this.drawInterface(snapshot);
-  }
-
-  private drawCloud(x: number, y: number, scale: number): void {
-    const context = this.context;
-
-    context.save();
-    context.translate(x, y);
-    context.scale(scale, scale);
-    context.fillStyle = "rgba(255, 255, 255, 0.72)";
-    context.beginPath();
-    context.arc(-28, 8, 22, 0, Math.PI * 2);
-    context.arc(0, 0, 31, 0, Math.PI * 2);
-    context.arc(31, 10, 20, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
   }
 
   private drawTerrain(snapshot: GameSnapshot): void {

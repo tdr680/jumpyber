@@ -65,6 +65,7 @@ test("loads and renders the responsive ready state", async ({ page }) => {
   await expect(canvas).toHaveAttribute("data-game-state", "ready");
   await expect(canvas).toHaveAttribute("data-player-sprite", "loaded");
   await expect(canvas).toHaveAttribute("data-obstacle-sprites", "loaded");
+  await expect(canvas).toHaveAttribute("data-background-sprites", "loaded");
   await expect(canvas).toHaveAttribute("data-player-frame", "ready");
 
   const initialSize = await canvas.boundingBox();

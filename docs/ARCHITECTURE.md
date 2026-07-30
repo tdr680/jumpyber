@@ -106,7 +106,12 @@ src/input/InputController.ts
   Browser events normalized to game actions.
 
 src/rendering/CanvasRenderer.ts
-  All Canvas drawing, sprite loading, and procedural player fallback.
+  Composes the sky, parallax background, terrain, gameplay sprites, fallbacks,
+  and interface in presentation order.
+
+src/rendering/ParallaxBackground.ts
+  Loads configured decorative strips once and renders allocation-light
+  repeated layers from pure world/camera offset calculations.
 
 src/rendering/PlayerSprite.ts
   Pure game-state/velocity-to-frame selection and stable frame ordering.
@@ -248,6 +253,40 @@ The opening has exactly zero slope and eases into noise. A weak centre bias plus
 smooth attenuation and inward bias near vertical limits prevents unbounded
 drift. Restart clears generated nodes and recreates obstacles with the same
 configured seed.
+
+## Sprite background and parallax
+
+`gameConfig.background.layers` is an ordered, typed list of decorative layers.
+Each entry owns its deployment-relative image path, expected source and draw
+size, scroll factor, logical vertical offset, repeat mode, spacing, opacity,
+and motion source. The initial mist, skyline, and ruin strips are all anchored
+to authoritative `worldDistance`, with factors of `0.025`, `0.07`, and `0.15`
+respectively.
+
+`ParallaxBackground` loads each image once through Vite's `BASE_URL`, validates
+its natural dimensions, and renders only enough repeated copies to cover the
+logical viewport. Its pure wrap helpers map source travel to a stable offset,
+including after any number of complete strip widths. Config order is render
+order, from farthest to nearest.
+
+The sky gradient is always painted first. A missing or dimensionally invalid
+layer is skipped, so the gradient and any successfully loaded siblings remain
+usable; the canvas exposes aggregate loading state for browser checks. Terrain,
+obstacles, player, and interface then render above the decorative background.
+
+Parallax layers never participate in terrain sampling, obstacle placement,
+collision, scoring, camera simulation, or restart state. This is a deliberate
+one-way projection:
+
+```text
+GameWorld worldDistance
+  -> per-layer scroll factor and horizontal wrap
+  -> decorative Canvas draw positions only
+```
+
+The configuration supports camera-anchored decorative travel later, but the
+current fixed camera supplies no offset and all shipped layers are
+world-anchored.
 
 ## Randomness
 
